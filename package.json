@@ -1,0 +1,60 @@
+{
+  "name": "nuxt-theme-kit",
+  "version": "0.0.1",
+  "description": "Toolkit for authoring Nuxt Themes",
+  "keywords": [
+    "nuxt",
+    "theme",
+    "kit"
+  ],
+  "repository": "Tahul/nuxt-theme-kit",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/module.mjs",
+      "require": "./dist/module.cjs"
+    }
+  },
+  "main": "./dist/module.cjs",
+  "module": "./dist/module.mjs",
+  "types": "./dist/types.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "nuxt-module-build",
+    "dev": "nuxi dev playground",
+    "dev:build": "nuxi build playground",
+    "dev:prepare": "nuxt-module-build --stub && nuxi prepare playground",
+    "dev:fixtures": "./.github/scripts/fixture.sh",
+    "dev:docs": "nuxi dev docs",
+    "build:docs": "nuxi build docs",
+    "lint": "eslint --ext .js,.ts,.vue .",
+    "prepack": "yarn build",
+    "test:coverage": "vitest --coverage",
+    "test:types": "tsc --build tsconfig.json",
+    "test": "nuxi prepare test/fixtures/basic && vitest run",
+    "postinstall": "yarn dev:prepare"
+  },
+  "dependencies": {
+    "@nuxt/kit": "^3.0.0-rc.4"
+  },
+  "devDependencies": {
+    "@nuxt/module-builder": "^0.1.7",
+    "@nuxt/schema": "^3.0.0-rc.4",
+    "@nuxt/test-utils": "npm:@nuxt/test-utils-edge@latest",
+    "@nuxtjs/eslint-config-typescript": "latest",
+    "@docus/docs-theme": "npm:@docus/docs-theme-edge@latest",
+    "@docus/github": "npm:@docus/github-edge@latest",
+    "c8": "^7.11.3",
+    "eslint": "^8.18.0",
+    "globby": "^13.1.2",
+    "husky": "^8.0.1",
+    "jiti": "^1.14.0",
+    "lint-staged": "^13.0.2",
+    "nuxt": "^3.0.0-rc.4",
+    "pathe": "^0.3.0",
+    "vitest": "^0.15.2"
+  }
+}

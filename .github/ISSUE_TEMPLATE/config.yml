@@ -1,0 +1,7 @@
+contact_links:
+  - name: 📚 Documentation
+    url: https://nuxt-theme-kit.netlify.app
+    about: Check documentation for usage
+  - name: 💬 Discussions
+    url: https://github.com/Tahul/nuxt-theme-kit/discussions
+    about: Use discussions if you have an idea for improvement and asking questions
