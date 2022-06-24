@@ -1,12 +1,13 @@
 import {
   defineNuxtModule,
   createResolver,
-  resolveModule
+  resolveModule,
+  addTemplate
 } from '@nuxt/kit'
-import { name, version } from '../package.json'
+import { NuxtThemeConfig, NuxtThemeMeta } from './types.d'
+import { name, version, generateTyping, NuxtLayer, resolveTheme, motd } from './utils'
 
-export interface ModuleOptions {
-  // Module options
+export interface ModuleOptions extends NuxtThemeConfig {
 }
 
 export interface ModuleHooks {
@@ -23,17 +24,49 @@ export default defineNuxtModule<ModuleOptions>({
     }
   },
   defaults: {
+    meta: {
+      name: 'My Nuxt Theme',
+      description: 'My Nuxt Theme',
+      author: '',
+      motd: true
+    }
   },
   setup (options, nuxt) {
     // Runtime resolver
     const { resolve } = createResolver(import.meta.url)
     const resolveRuntimeModule = (path: string) => resolveModule(path, { paths: resolve('./runtime') })
 
-    console.log('Hello World')
+    nuxt.options.runtimeConfig.public.theme = {
+      metas: [],
+      defaultThemeConfig: {}
+    }
+
+    nuxt.hook('modules:done', () => {
+      const layers = nuxt.options._layers
+
+      const { metas, defaults: theme } = resolveTheme(layers as NuxtLayer[])
+
+      console.log({ metas })
+
+      addTemplate({
+        filename: 'types/theme.d.ts',
+        getContents: () => generateTyping(theme)
+      })
+
+      nuxt.options.runtimeConfig.public.theme.defaultThemeConfig = theme
+    })
+
+    nuxt.hook('prepare:types', (opts) => {
+      opts.references.push({ path: resolve(nuxt.options.buildDir, 'types/theme.d.ts') })
+    })
+
+    motd()
   }
 })
 
 interface ModulePublicRuntimeConfig {
+  metas: NuxtThemeMeta[]
+  defaultThemeConfig?: Omit<NuxtThemeConfig, 'meta'>
 }
 
 interface ModulePrivateRuntimeConfig {
@@ -43,10 +76,10 @@ declare module '@nuxt/schema' {
   interface ConfigSchema {
     runtimeConfig: {
       public?: {
-        content?: ModulePublicRuntimeConfig;
+        theme?: ModulePublicRuntimeConfig;
       }
       private?: {
-        content?: ModulePrivateRuntimeConfig;
+        theme?: ModulePrivateRuntimeConfig;
       }
     }
   }

@@ -38,15 +38,16 @@
     "postinstall": "yarn dev:prepare"
   },
   "dependencies": {
-    "@nuxt/kit": "^3.0.0-rc.4"
+    "@nuxt/kit": "^3.0.0-rc.4",
+    "untyped": "^0.4.4"
   },
   "devDependencies": {
+    "@docus/docs-theme": "npm:@docus/docs-theme-edge@latest",
+    "@docus/github": "npm:@docus/github-edge@latest",
     "@nuxt/module-builder": "^0.1.7",
     "@nuxt/schema": "^3.0.0-rc.4",
     "@nuxt/test-utils": "npm:@nuxt/test-utils-edge@latest",
     "@nuxtjs/eslint-config-typescript": "latest",
-    "@docus/docs-theme": "npm:@docus/docs-theme-edge@latest",
-    "@docus/github": "npm:@docus/github-edge@latest",
     "c8": "^7.11.3",
     "eslint": "^8.18.0",
     "globby": "^13.1.2",

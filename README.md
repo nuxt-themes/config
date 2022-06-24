@@ -6,7 +6,7 @@ Toolkit for authoring Nuxt Themes.
 
 - Handles theme configuration
 
-## 💻 Development
+## Development
 
 - Clone repository
 - Install dependencies using `yarn install``
