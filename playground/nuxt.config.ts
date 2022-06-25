@@ -7,5 +7,7 @@ const resolveThemeDir = (path: string) => resolve(themeDir, path)
 
 export default defineNuxtConfig({
   extends: [resolveThemeDir('./theme')],
-  theme: {}
+  theme: {
+    tokens: true
+  }
 })

@@ -7,7 +7,7 @@ const themeDir = fileURLToPath(new URL('./', import.meta.url))
 const resolveThemeDir = (path: string) => resolve(themeDir, path)
 
 export default defineNuxtConfig({
-  modules: [localModule],
+  modules: [localModule, '@nuxtjs/tailwindcss'],
   theme: {
     meta: {
       name: 'Playground Theme',
