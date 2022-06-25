@@ -1,12 +1,27 @@
 import { fileURLToPath } from 'url'
 import { describe, test, expect } from 'vitest'
-import { setup, $fetch } from '@nuxt/test-utils'
+import { $fetch, setup } from '@nuxt/test-utils'
+import { generateTokens } from '../src/tokens/generate'
+
+const fixturePath = fileURLToPath(new URL('./fixtures/basic', import.meta.url))
 
 describe('Basic usage', async () => {
   await setup({
-    rootDir: fileURLToPath(new URL('./fixtures/basic', import.meta.url)),
-    server: true
+    rootDir: fixturePath,
+    server: true,
+    dev: true
   })
+
+  await generateTokens(
+    {
+      colors: {
+        red: {
+          value: 100
+        }
+      }
+    },
+    fixturePath + '/.nuxt/tokens/'
+  )
 
   test('Fetch index', async () => {
     const content = await $fetch('/')

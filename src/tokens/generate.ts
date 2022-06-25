@@ -181,6 +181,8 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
 
   styleDictionary.buildAllPlatforms()
 
+  await new Promise(resolve => setTimeout(resolve, 100))
+
   // Weird trick to disable nasty logging
   if (silent) {
     // @ts-ignore

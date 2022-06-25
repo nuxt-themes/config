@@ -101,16 +101,6 @@ export default defineNuxtModule<ModuleOptions>({
         })
       })
 
-      nuxt.hook('builder:watch', async (_, path) => {
-        const isTokenFile = privateConfig.tokensFilePaths.some(tokensFilePath => tokensFilePath.includes(path.replace('.js', '')) || tokensFilePath.includes(path.replace('.ts', '')))
-
-        if (isTokenFile) {
-          refreshTheme()
-          await generateTokens(runtimeConfig.theme.tokens, tokensDir)
-          logger.success('Tokens regenerated!')
-        }
-      })
-
       try {
         await generateTokens(runtimeConfig.theme.tokens, tokensDir)
         logger.success('Tokens built succesfully!')
@@ -145,9 +135,22 @@ export default defineNuxtModule<ModuleOptions>({
         as: '$t'
       })
 
+      // Build
       const buildTokens = async () => await generateTokens(runtimeConfig.theme.tokens, tokensDir)
-
       nuxt.hook('build:before', buildTokens)
+
+      // Development
+      if (process.dev) {
+        nuxt.hook('builder:watch', async (_, path) => {
+          const isTokenFile = privateConfig.tokensFilePaths.some(tokensFilePath => tokensFilePath.includes(path.replace('.js', '')) || tokensFilePath.includes(path.replace('.ts', '')))
+
+          if (isTokenFile) {
+            refreshTheme()
+            await generateTokens(runtimeConfig.theme.tokens, tokensDir)
+            logger.success('Tokens regenerated!')
+          }
+        })
+      }
     }
 
     nuxt.hook('prepare:types', (opts) => {
