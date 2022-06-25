@@ -1,7 +1,7 @@
 import { createDefu, defu } from 'defu'
 import { resolve } from 'pathe'
 import { generateTypes, resolveSchema } from 'untyped'
-import { greenBright } from 'chalk'
+import chalk from 'chalk'
 import { requireModule, useLogger } from '@nuxt/kit'
 import { name, version } from '../package.json'
 
@@ -13,7 +13,7 @@ export interface NuxtLayer {
 
 // Logging
 export const logger = useLogger('nuxt-theme-kit')
-export const pkgName = greenBright(name)
+export const pkgName = chalk.greenBright(name)
 export const motd = () => logger.success(`Using ${pkgName} v${version}`)
 
 // Package datas

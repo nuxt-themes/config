@@ -139,7 +139,7 @@ export default defineNuxtModule<ModuleOptions>({
       const buildTokens = async () => await generateTokens(runtimeConfig.theme.tokens, tokensDir)
       nuxt.hook('build:before', buildTokens)
 
-      // Development
+      // @ts-ignore - Development
       if (process?.dev) {
         nuxt.hook('builder:watch', async (_, path) => {
           const isTokenFile = privateConfig.tokensFilePaths.some(tokensFilePath => tokensFilePath.includes(path.replace('.js', '')) || tokensFilePath.includes(path.replace('.ts', '')))
