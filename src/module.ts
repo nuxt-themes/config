@@ -112,9 +112,13 @@ export default defineNuxtModule<ModuleOptions>({
         }
       })
 
-      await generateTokens(runtimeConfig.theme.tokens, tokensDir)
-
-      logger.success('Tokens built succesfully!')
+      try {
+        await generateTokens(runtimeConfig.theme.tokens, tokensDir)
+        logger.success('Tokens built succesfully!')
+      } catch (e) {
+        logger.error('Could not build tokens!')
+        logger.error(e.message)
+      }
 
       nuxt.options.alias = nuxt.options.alias || {}
 

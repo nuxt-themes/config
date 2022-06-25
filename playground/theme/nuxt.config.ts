@@ -16,5 +16,8 @@ export default defineNuxtConfig({
       author: 'NuxtLabs',
       motd: true
     }
+  },
+  tailwindcss: {
+    viewer: false
   }
 })

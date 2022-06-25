@@ -168,6 +168,7 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
     }
   })
 
+  // Weird trick to disable nasty logging
   if (silent) {
     // @ts-ignore
     console._log = console.log
@@ -178,6 +179,7 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
 
   styleDictionary.buildAllPlatforms()
 
+  // Weird trick to disable nasty logging
   if (silent) {
     // @ts-ignore
     console.log = console._log

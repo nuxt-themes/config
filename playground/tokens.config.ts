@@ -1,5 +1,5 @@
 export default {
-  color: {
+  colors: {
     gray: {
       light: {
         value: '#CCCCCC'
@@ -30,7 +30,7 @@ export default {
   },
   borders: {
     base: {
-      value: '2px solid {color.red.900}'
+      value: '5px solid {colors.red.900}'
     }
   }
 }
