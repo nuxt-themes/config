@@ -171,7 +171,9 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
   // Weird trick to disable nasty logging
   if (silent) {
     // @ts-ignore
+    // eslint-disable-next-line no-console
     console._log = console.log
+    // eslint-disable-next-line no-console
     console.log = () => {}
   }
 
@@ -182,8 +184,10 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
   // Weird trick to disable nasty logging
   if (silent) {
     // @ts-ignore
+    // eslint-disable-next-line no-console
     console.log = console._log
     // @ts-ignore
+    // eslint-disable-next-line no-console
     delete console._log
   }
 }

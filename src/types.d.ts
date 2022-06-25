@@ -13,6 +13,6 @@ export interface NuxtThemeTokens extends DesignTokens {
 
 export interface NuxtThemeConfig {
   meta: NuxtThemeMeta
-  tokens: boolean | string | NuxtThemeTokens
+  tokens: boolean | string | NuxtThemeTokens
   [key: any]: string
 }
