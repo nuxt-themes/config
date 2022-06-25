@@ -12,6 +12,8 @@ import { generateTokens } from './tokens/generate'
 import { NuxtThemeConfig, NuxtThemeMeta } from './types.d'
 import { logger, name, version, generateTyping, NuxtLayer, resolveTheme, motd } from './utils'
 
+export { generateTokens }
+
 export interface ModuleOptions extends NuxtThemeConfig {
 }
 

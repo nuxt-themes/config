@@ -1,5 +1,5 @@
 import { defineEventHandler } from 'h3'
-import { generateTokens } from '../../../../tokens/generate'
+import { generateTokens } from '../../../../module'
 import { useRuntimeConfig } from '#imports'
 
 export default defineEventHandler(async () => {

@@ -177,6 +177,7 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
     console.log = () => {}
   }
 
+  // @ts-ignore
   if (process.dev) { styleDictionary.cleanAllPlatforms() }
 
   styleDictionary.buildAllPlatforms()
