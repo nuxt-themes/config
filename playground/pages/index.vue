@@ -2,7 +2,11 @@
   <div
     class="app p-4 bg-primary-100 border-4 border-primary-500"
   >
-    <h1>
+    <h1
+      :style="{
+        backgroundColor: $tokens('')
+      }"
+    >
       Hello World!
     </h1>
   </div>

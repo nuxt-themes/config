@@ -1,4 +1,3 @@
-import fs from 'fs/promises'
 import {
   defineNuxtModule,
   createResolver,
@@ -102,7 +101,7 @@ export default defineNuxtModule<ModuleOptions>({
         })
       })
 
-      nuxt.hook('builder:watch', async (type, path) => {
+      nuxt.hook('builder:watch', async (_, path) => {
         const isTokenFile = privateConfig.tokensFilePaths.some(tokensFilePath => tokensFilePath.includes(path.replace('.js', '')) || tokensFilePath.includes(path.replace('.ts', '')))
 
         if (isTokenFile) {
@@ -145,6 +144,10 @@ export default defineNuxtModule<ModuleOptions>({
         name: '$tokens',
         as: '$t'
       })
+
+      const buildTokens = async () => await generateTokens(runtimeConfig.theme.tokens, tokensDir)
+
+      nuxt.hook('build:before', buildTokens)
     }
 
     nuxt.hook('prepare:types', (opts) => {
