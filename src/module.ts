@@ -101,6 +101,8 @@ export default defineNuxtModule<ModuleOptions>({
           route: '/api/_theme/tokens/generate',
           handler: resolveRuntimeModule('./server/api/tokens/generate')
         })
+
+        nitroConfig.alias['#tokens'] = resolveRuntime('./tokens')
       })
 
       try {
@@ -119,7 +121,7 @@ export default defineNuxtModule<ModuleOptions>({
 
       nuxt.options.css = nuxt.options.css || []
 
-      nuxt.options.css.push(resolveTokensDirectory('./variables.css'))
+      nuxt.options.css = [...nuxt.options.css, resolveTokensDirectory('./variables.css')]
 
       addPlugin({
         src: resolveRuntimeModule('./plugins/tokens')

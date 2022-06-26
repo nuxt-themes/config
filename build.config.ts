@@ -1,6 +1,7 @@
 import { defineBuildConfig } from 'unbuild'
 
 export default defineBuildConfig({
+  stub: false,
   externals: [
     'browser-style-dictionary',
     'ufo',
