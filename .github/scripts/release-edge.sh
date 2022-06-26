@@ -13,6 +13,9 @@ yarn jiti ./.github/scripts/bump-edge
 # Resolve yarn
 YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
 
+# Build
+yarn build
+
 # Update token
 if [[ ! -z ${NODE_AUTH_TOKEN} ]] ; then
   echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" >> ~/.npmrc
