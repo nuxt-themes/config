@@ -10,9 +10,6 @@ git restore -s@ -SW  -- .
 # Bump versions to edge
 yarn jiti ./.github/scripts/bump-edge
 
-# Resolve yarn
-YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
-
 # Build
 yarn build
 
