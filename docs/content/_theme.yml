@@ -13,8 +13,8 @@ github:
 aside:
   level: 1
 header:
-  title: false
-  logo: true
+  title: "nuxt-theme-kit 🎨"
+  logo: false
 footer:
   credits:
     icon: IconDocus

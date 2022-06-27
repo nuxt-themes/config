@@ -1,10 +1,10 @@
 import type { ComputedRef } from 'vue'
 import { computed } from 'vue'
 import type { PublicRuntimeConfig } from '@nuxt/schema'
-import { NuxtThemeOptions } from '#theme/types'
+import type { NuxtThemeOptions } from '../../module'
 import { useRuntimeConfig, useState, useCookie } from '#imports'
 
-export const useTheme = (): ComputedRef<NuxtThemeOptions> => {
+export const useTheme = (): ComputedRef<Partial<NuxtThemeOptions>> => {
   const runtimeConfig = useRuntimeConfig()
 
   /**
