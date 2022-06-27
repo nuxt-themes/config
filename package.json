@@ -35,6 +35,7 @@
     "test:coverage": "vitest --coverage",
     "test:types": "tsc --build tsconfig.json",
     "test": "nuxi prepare test/fixtures/basic && vitest run",
+    "clean": "./.github/scripts/clean.sh",
     "prepare": "yarn dev:prepare"
   },
   "dependencies": {
@@ -58,7 +59,7 @@
     "husky": "^8.0.1",
     "jiti": "^1.14.0",
     "lint-staged": "^13.0.3",
-    "nuxt": "^3.0.0-rc.4",
+    "nuxt": "npm:nuxt3@latest",
     "pathe": "^0.3.0",
     "vitest": "^0.16.0"
   },
