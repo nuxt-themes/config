@@ -6,6 +6,9 @@ export default defineNuxtConfig({
   extends: [
     (process.env.DOCUS_THEME_PATH || '../node_modules/@docus/docs-theme')
   ],
+  ignore: [
+    'content/**/*'
+  ],
   components: [
     {
       path: '~/components',
