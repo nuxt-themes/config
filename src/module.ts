@@ -9,7 +9,6 @@ import {
 import { withTrailingSlash } from 'ufo'
 import type { DesignTokens } from 'browser-style-dictionary/types/browser'
 import type { ViteDevServer } from 'vite'
-import type { Nitro } from 'nitropack'
 import { generateTokens } from './runtime/server/tokens'
 import { logger, name, version, generateOptionsTyping, NuxtLayer, resolveTheme, motd, MODULE_DEFAULTS } from './utils'
 import type { ThemeTokens, ThemeOptions } from '#theme/types'
@@ -97,11 +96,6 @@ export default defineNuxtModule<ModuleOptions>({
 
     nuxt.options.build.transpile = nuxt.options.build.transpile || []
 
-    let nitro: Nitro
-    nuxt.hook('nitro:init', (_nitro) => {
-      nitro = _nitro
-    })
-
     const themeDir = withTrailingSlash(nuxt.options.buildDir + '/theme')
     runtimeConfig.themeDir = themeDir
     const { resolve: resolveThemeDir } = createResolver(themeDir)
@@ -116,24 +110,7 @@ export default defineNuxtModule<ModuleOptions>({
     // Nuxt `extends` key layers
     const layers = nuxt.options._layers
 
-    const refreshTheme = () => {
-      // Resolve theme configuration from every layer
-      const { optionsFilePaths, tokensFilePaths, tokens, metas, options } = resolveTheme(layers as NuxtLayer[])
-
-      // @ts-ignore - Apply data from theme resolving
-      runtimeConfig.options = options
-      runtimeConfig.metas = metas
-      privateConfig.tokens = tokens
-      privateConfig.tokensFilePaths = tokensFilePaths
-      privateConfig.optionsFilePaths = optionsFilePaths
-
-      if (nitro) {
-        nitro.options.runtimeConfig.theme.options = options
-        nitro.options._config.runtimeConfig.theme.options = options
-      }
-    }
-
-    refreshTheme()
+    // refreshTheme()
 
     motd(runtimeConfig.metas)
 
@@ -167,6 +144,17 @@ export default defineNuxtModule<ModuleOptions>({
           method: 'get',
           route: '/api/_theme/tokens/generate',
           handler: resolveRuntimeModule('./server/api/tokens/generate')
+        })
+
+        nitroConfig.handlers.push({
+          method: 'get',
+          route: '/api/_theme/config',
+          handler: resolveRuntimeModule('./server/api/config')
+        })
+        nitroConfig.handlers.push({
+          method: 'post',
+          route: '/api/_theme/config',
+          handler: resolveRuntimeModule('./server/api/config')
         })
 
         nitroConfig.alias['#theme/server'] = resolveRuntime('./runtime/server/tokens')
@@ -223,40 +211,59 @@ export default defineNuxtModule<ModuleOptions>({
       }
     }
 
+    nuxt.hook('nitro:init', async (nitro) => {
+      const refreshTheme = async () => {
+        // Resolve theme configuration from every layer
+        const { optionsFilePaths, tokensFilePaths, tokens, metas, options } = resolveTheme(layers as NuxtLayer[])
+
+        // TODO: remove this
+        // @ts-ignore - Apply data from theme resolving
+        runtimeConfig.options = options
+        runtimeConfig.metas = metas
+        privateConfig.tokens = tokens
+        privateConfig.tokensFilePaths = tokensFilePaths
+        privateConfig.optionsFilePaths = optionsFilePaths
+
+        await nitro.storage.setItem('cache:theme-kit:tokens.json', tokens)
+        await nitro.storage.setItem('cache:theme-kit:options.json', options)
+
+        // if (nitro) {
+        //   nitro.options.runtimeConfig.theme.options = options
+        //   nitro.options._config.runtimeConfig.theme.options = options
+        // }
+      }
+      await refreshTheme()
+    })
     // Development reload (theme.config)
     if (nuxt.options.dev) {
+      // TODO: replace by custom server
       nuxt.hook('vite:serverCreated', (viteServer: ViteDevServer) => {
         // Rebuild tokens on `token.config` changes
-        if (privateConfig.tokensFilePaths.length) {
+        if (privateConfig.tokensFilePaths.length || privateConfig.optionsFilePaths.length) {
           nuxt.hook('builder:watch', async (_, path) => {
             // Watch on `tokens.config` if a config file is used
             const isTokenFile = privateConfig.tokensFilePaths.some(tokensFilePath => tokensFilePath.includes(path.replace('.js', '')) || tokensFilePath.includes(path.replace('.ts', '')))
-
-            if (isTokenFile) {
-              refreshTheme()
-              await buildTokens()
-
-              viteServer.ws.send({
-                type: 'custom',
-                event: 'nuxt-theme-kit:tokens-update',
-                data: privateConfig.tokens
-              })
-            }
-          })
-        }
-
-        if (privateConfig.optionsFilePaths.length) {
-          // Watch on `theme.config` if a config file is used
-          nuxt.hook('builder:watch', (_, path) => {
             const isOptionsFile = privateConfig.optionsFilePaths.some(optionsFilePath => optionsFilePath.includes(path.replace('.js', '')) || optionsFilePath.includes(path.replace('.ts', '')))
 
-            if (isOptionsFile) {
-              refreshTheme()
+            if (isTokenFile || isOptionsFile) {
+              const { tokens, options, metas, tokensFilePaths, optionsFilePaths } = resolveTheme(layers as NuxtLayer[])
+              await buildTokens()
+
+              // TODO: remove this
+              // @ts-ignore - Apply data from theme resolving
+              runtimeConfig.options = options
+              runtimeConfig.metas = metas
+              privateConfig.tokens = tokens
+              privateConfig.tokensFilePaths = tokensFilePaths
+              privateConfig.optionsFilePaths = optionsFilePaths
 
               viteServer.ws.send({
                 type: 'custom',
-                event: 'nuxt-theme-kit:options-update',
-                data: runtimeConfig.options
+                event: 'nuxt-theme-kit:update',
+                data: {
+                  tokens,
+                  options
+                }
               })
             }
           })
