@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import type { TokenPaths } from '#tokens'
+import type { TokenPaths } from '#theme/types'
 import { defineNuxtPlugin, unref } from '#imports'
 
 export default defineNuxtPlugin(() => {

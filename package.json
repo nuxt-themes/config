@@ -26,7 +26,7 @@
     "build": "nuxt-module-build",
     "dev": "nuxi dev playground",
     "dev:build": "nuxi build playground",
-    "dev:prepare": "nuxt-module-build --stub && nuxi prepare playground",
+    "dev:prepare": "nuxi prepare playground && nuxt-module-build --stub",
     "dev:fixtures": "./.github/scripts/fixture.sh",
     "dev:docs": "nuxi dev docs",
     "build:docs": "nuxi generate docs",
@@ -39,6 +39,8 @@
   },
   "dependencies": {
     "@nuxt/kit": "^3.0.0-rc.4",
+    "lodash.get": "^4.4.2",
+    "@types/lodash.get": "^4.4.7",
     "untyped": "^0.4.4"
   },
   "devDependencies": {
@@ -55,10 +57,10 @@
     "globby": "^13.1.2",
     "husky": "^8.0.1",
     "jiti": "^1.14.0",
-    "lint-staged": "^13.0.2",
+    "lint-staged": "^13.0.3",
     "nuxt": "^3.0.0-rc.4",
     "pathe": "^0.3.0",
-    "vitest": "^0.15.2"
+    "vitest": "^0.16.0"
   },
   "peerDependencies": {
     "browser-style-dictionary": "^3.1.1-browser.1"

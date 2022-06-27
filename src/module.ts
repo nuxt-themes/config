@@ -7,18 +7,66 @@ import {
   addAutoImport
 } from '@nuxt/kit'
 import { withTrailingSlash } from 'ufo'
-import { resolve } from 'pathe'
+import type { DesignTokens } from 'browser-style-dictionary/types/browser'
+import type { ViteDevServer } from 'vite'
+import type { Nitro } from 'nitropack'
 import { generateTokens } from './tokens/generate'
-import { NuxtThemeConfig, NuxtThemeMeta } from './types.d'
-import { logger, name, version, generateTyping, NuxtLayer, resolveTheme, motd } from './utils'
+import { logger, name, version, generateOptionsTyping, NuxtLayer, resolveTheme, motd, MODULE_DEFAULTS } from './utils'
+import type { ThemeTokens, ThemeOptions } from '#theme/types'
+
+export interface NuxtThemeMeta {
+  name?: string
+  description?: string
+  author?: string
+  url?: string
+  motd?: boolean
+}
+
+export interface NuxtThemeOptions extends ThemeOptions {
+  [key: string]: any
+}
+
+export interface NuxtThemeTokens extends ThemeTokens, DesignTokens {
+}
+
+export interface NuxtThemeConfig {
+  meta?: NuxtThemeMeta
+  options?: NuxtThemeOptions | boolean | string
+  tokens?: NuxtThemeTokens | boolean | string
+}
 
 export { generateTokens }
 
 export interface ModuleOptions extends NuxtThemeConfig {
+  // Module options
 }
 
 export interface ModuleHooks {
   // Module hooks
+}
+
+export interface ModulePublicRuntimeConfig {
+  metas?: NuxtThemeMeta[]
+  options?: Partial<NuxtThemeOptions>
+  themeDir?: string
+}
+
+export interface ModulePrivateRuntimeConfig {
+  tokensFilePaths?: Array<string>
+  optionsFilePaths?: Array<string>
+  tokens?: NuxtThemeTokens
+}
+
+declare module '@nuxt/schema' {
+  interface PublicRuntimeConfig {
+    // @ts-ignore
+    theme?: ModulePublicRuntimeConfig;
+  }
+
+  interface RuntimeConfig {
+    // @ts-ignore
+    theme?: ModulePrivateRuntimeConfig;
+  }
 }
 
 export default defineNuxtModule<ModuleOptions>({
@@ -30,23 +78,33 @@ export default defineNuxtModule<ModuleOptions>({
       nuxt: '^3.0.0-rc.4'
     }
   },
-  defaults: {
-    meta: {
-      name: 'My Nuxt Theme',
-      description: 'My Nuxt Theme',
-      author: '',
-      motd: true
-    },
-    tokens: true
-  },
+  defaults: MODULE_DEFAULTS,
   async setup (options, nuxt) {
     // Public runtime config
-    const runtimeConfig = nuxt.options.runtimeConfig.public
+    nuxt.options.runtimeConfig.public.theme = {
+      metas: [],
+      options: {} as any,
+      themeDir: ''
+    }
+    const runtimeConfig = nuxt.options.runtimeConfig.public.theme
     // Private runtime config
-    nuxt.options.runtimeConfig.theme = {}
+    nuxt.options.runtimeConfig.theme = {
+      tokens: {} as ThemeTokens,
+      tokensFilePaths: [],
+      optionsFilePaths: []
+    }
     const privateConfig = nuxt.options.runtimeConfig.theme
 
     nuxt.options.build.transpile = nuxt.options.build.transpile || []
+
+    let nitro: Nitro
+    nuxt.hook('nitro:init', (_nitro) => {
+      nitro = _nitro
+    })
+
+    const themeDir = withTrailingSlash(nuxt.options.buildDir + '/theme')
+    runtimeConfig.themeDir = themeDir
+    const { resolve: resolveThemeDir } = createResolver(themeDir)
 
     // Runtime resolver
     const { resolve: resolveRuntime } = createResolver(import.meta.url)
@@ -60,36 +118,45 @@ export default defineNuxtModule<ModuleOptions>({
 
     const refreshTheme = () => {
       // Resolve theme configuration from every layer
-      const { tokensFilePaths, ...themeConfig } = resolveTheme(layers as NuxtLayer[])
+      const { optionsFilePaths, tokensFilePaths, tokens, metas, options } = resolveTheme(layers as NuxtLayer[])
 
-      // Apply data from theme resolving
-      runtimeConfig.theme = themeConfig
+      // @ts-ignore - Apply data from theme resolving
+      runtimeConfig.options = options
+      runtimeConfig.metas = metas
+      privateConfig.tokens = tokens
       privateConfig.tokensFilePaths = tokensFilePaths
+      privateConfig.optionsFilePaths = optionsFilePaths
+
+      if (nitro) {
+        nitro.options.runtimeConfig.theme.options = options
+        nitro.options._config.runtimeConfig.theme.options = options
+      }
     }
 
     refreshTheme()
 
-    // Add typings to templates
+    motd(runtimeConfig.metas)
+
+    // Add $theme plugin
+    addPlugin({
+      src: resolveRuntimeModule('./plugins/theme')
+    })
+
+    // Add options typings to templates
     addTemplate({
-      filename: 'types/theme.d.ts',
-      getContents: () => generateTyping(runtimeConfig.theme)
+      filename: 'theme/options.d.ts',
+      getContents: () => generateOptionsTyping(runtimeConfig.options)
     })
 
     // Enable design tokens feature
+    let buildTokens: () => Promise<void> = () => new Promise(resolve => resolve())
     if (options.tokens) {
       // Transpile browser-style-dictionary
       nuxt.options.build.transpile.push('browser-style-dictionary')
 
-      // Tokens dir resolver
-      const tokensDir = withTrailingSlash(nuxt.options.buildDir + '/tokens')
-      const { resolve: resolveTokensDirectory } = createResolver(tokensDir)
-
-      // Expose rootDir to runtimeConfig
-      runtimeConfig.tokensDir = tokensDir
-
       // Inject typings
       nuxt.hook('prepare:types', (opts) => {
-        opts.references.push({ path: resolve(nuxt.options.buildDir, 'tokens/tokens.d.ts') })
+        opts.references.push({ path: resolveThemeDir('./theme.d.ts') })
       })
 
       // Push tokens handlers
@@ -102,87 +169,105 @@ export default defineNuxtModule<ModuleOptions>({
           handler: resolveRuntimeModule('./server/api/tokens/generate')
         })
 
-        nitroConfig.alias['#tokens'] = resolveRuntime('./tokens')
+        nitroConfig.alias['#theme/server'] = resolveRuntime('./tokens/index')
       })
 
-      try {
-        await generateTokens(runtimeConfig.theme.tokens, tokensDir)
-        logger.success('Tokens built succesfully!')
-      } catch (e) {
-        logger.error('Could not build tokens!')
-        logger.error(e.message)
+      buildTokens = async () => {
+        try {
+          await generateTokens(privateConfig.tokens, themeDir)
+          logger.success('Tokens built succesfully!')
+        } catch (e) {
+          logger.error('Could not build tokens!')
+          logger.error(e.message)
+        }
       }
 
       nuxt.options.alias = nuxt.options.alias || {}
 
-      nuxt.options.alias['#tokens'] = resolveTokensDirectory('./tokens.ts')
+      nuxt.options.alias['#theme/client'] = resolveThemeDir('./tokens')
 
-      nuxt.options.alias['#tokens/types'] = resolveTokensDirectory('./tokens.d.ts')
+      nuxt.options.alias['#theme/types'] = resolveThemeDir('./tokens-types')
 
       nuxt.options.css = nuxt.options.css || []
 
-      nuxt.options.css = [...nuxt.options.css, resolveTokensDirectory('./variables.css')]
+      nuxt.options.css = [...nuxt.options.css, resolveThemeDir('./variables.css')]
 
+      /**
+       * Runtime
+       */
       addPlugin({
         src: resolveRuntimeModule('./plugins/tokens')
       })
-
       addAutoImport({
         from: resolveRuntimeModule('./composables/tokens'),
         name: '$tokens',
         as: '$tokens'
       })
-
       addAutoImport({
         from: resolveRuntimeModule('./composables/tokens'),
         name: '$tokens',
         as: '$t'
       })
+      addAutoImport({
+        from: resolveRuntimeModule('./composables/theme'),
+        name: 'useTheme',
+        as: 'useTheme'
+      })
 
-      // Build
-      const buildTokens = async () => await generateTokens(runtimeConfig.theme.tokens, tokensDir)
-      nuxt.hook('build:before', buildTokens)
+      // Initial build
+      await buildTokens()
 
-      // @ts-ignore - Development
-      if (process?.dev) {
-        nuxt.hook('builder:watch', async (_, path) => {
-          const isTokenFile = privateConfig.tokensFilePaths.some(tokensFilePath => tokensFilePath.includes(path.replace('.js', '')) || tokensFilePath.includes(path.replace('.ts', '')))
-
-          if (isTokenFile) {
-            refreshTheme()
-            await generateTokens(runtimeConfig.theme.tokens, tokensDir)
-            logger.success('Tokens regenerated!')
-          }
-        })
+      if (!nuxt.options.dev) {
+        // Build
+        nuxt.hook('build:before', buildTokens)
       }
     }
 
-    nuxt.hook('prepare:types', (opts) => {
-      opts.references.push({ path: resolve(nuxt.options.buildDir, 'types/theme.d.ts') })
-    })
+    // Development reload (theme.config)
+    if (nuxt.options.dev) {
+      nuxt.hook('vite:serverCreated', (viteServer: ViteDevServer) => {
+        // Rebuild tokens on `token.config` changes
+        if (privateConfig.tokensFilePaths.length) {
+          nuxt.hook('builder:watch', async (_, path) => {
+            // Watch on `tokens.config` if a config file is used
+            const isTokenFile = privateConfig.tokensFilePaths.some(tokensFilePath => tokensFilePath.includes(path.replace('.js', '')) || tokensFilePath.includes(path.replace('.ts', '')))
 
-    motd()
+            if (isTokenFile) {
+              refreshTheme()
+              await buildTokens()
+
+              viteServer.ws.send({
+                type: 'custom',
+                event: 'nuxt-theme-kit:tokens-update',
+                data: privateConfig.tokens
+              })
+            }
+          })
+        }
+
+        if (privateConfig.optionsFilePaths.length) {
+          // Watch on `theme.config` if a config file is used
+          nuxt.hook('builder:watch', (_, path) => {
+            const isOptionsFile = privateConfig.optionsFilePaths.some(optionsFilePath => optionsFilePath.includes(path.replace('.js', '')) || optionsFilePath.includes(path.replace('.ts', '')))
+
+            if (isOptionsFile) {
+              refreshTheme()
+
+              viteServer.ws.send({
+                type: 'custom',
+                event: 'nuxt-theme-kit:options-update',
+                data: runtimeConfig.options
+              })
+            }
+          })
+        }
+      })
+    }
   }
 })
 
-interface ModulePublicRuntimeConfig {
-  metas: NuxtThemeMeta[]
-  defaults?: Omit<NuxtThemeConfig, 'metas' | 'tokens'>
-}
+export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]>; } : T;
 
-interface ModulePrivateRuntimeConfig {
-}
+export const defineTheme = (options: DeepPartial<NuxtThemeOptions>): DeepPartial<NuxtThemeOptions> => options
 
-declare module '@nuxt/schema' {
-  interface ConfigSchema {
-    runtimeConfig: {
-      public?: {
-        theme?: ModulePublicRuntimeConfig;
-        rootDir: string
-      }
-      private?: {
-        theme?: ModulePrivateRuntimeConfig;
-      }
-    }
-  }
-}
+export const defineThemeTokens = (tokens: DeepPartial<NuxtThemeTokens>): DeepPartial<NuxtThemeTokens> => tokens

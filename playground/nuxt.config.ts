@@ -10,6 +10,10 @@ export default defineNuxtConfig({
     shim: false
   },
 
+  alias: {
+    'nuxt-theme-kit': resolveThemeDir('../src/module.ts')
+  },
+
   extends: [resolveThemeDir('./theme')],
 
   theme: {

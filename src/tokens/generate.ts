@@ -1,5 +1,6 @@
-import { DesignTokens, Core as Instance } from 'browser-style-dictionary/types/browser'
+import type { Core as Instance } from 'browser-style-dictionary/types/browser'
 import StyleDictionary from 'browser-style-dictionary/browser.js'
+import type { NuxtThemeTokens } from '../module'
 
 const DesignTokenType =
 `interface DesignToken {
@@ -25,7 +26,7 @@ const treeWalker = (obj, typing: boolean = true) => {
 
   if (has('value')) {
     // Transform name to CSS variable name
-    obj.variable = `var(--${obj.name.replace(/_/g, '-').toLowerCase()})`
+    obj.variable = `var(--${obj.name})`
 
     // Toggle between type declaration and value
     type = typing ? 'DesignToken' : obj
@@ -43,14 +44,14 @@ const treeWalker = (obj, typing: boolean = true) => {
   return type
 }
 
-export const generateTokens = async (tokens: DesignTokens, buildPath: string, silent = true) => {
+export const generateTokens = async (tokens: NuxtThemeTokens, buildPath: string, silent = true) => {
   let styleDictionary: Instance = StyleDictionary
 
   styleDictionary.fileHeader = {}
 
   styleDictionary.registerTransformGroup({
     name: 'tokens-js',
-    transforms: ['name/cti/constant', 'size/px', 'color/hex']
+    transforms: ['name/cti/kebab', 'size/px', 'color/hex']
   })
 
   styleDictionary.registerFormat({
@@ -58,11 +59,15 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
     formatter ({ dictionary }) {
       let result = 'import type { Ref } from \'vue\'\n\n'
 
+      result = result + 'import type { DesignTokens } from \'browser-style-dictionary/types/browser\'\n\n'
+
+      result = result + 'export * from \'./options.d\'\n\n'
+
       result = result + `export ${DesignTokenType}\n\n`
 
-      result = result + `export interface ThemeTokens ${JSON.stringify(treeWalker(dictionary.tokens), null, 2)}\n\n`
+      result = result + `export interface ThemeTokens extends DesignTokens ${JSON.stringify(treeWalker(dictionary.tokens), null, 2)}\n\n`
 
-      const tokenPaths = dictionary.allTokens.map(token => `'${token.name.replace(/_/g, '.').toLowerCase()}'`)
+      const tokenPaths = dictionary.allTokens.map(token => `'${token.name.replace(/-/g, '.').toLowerCase()}'`)
 
       result = result + `export type TokenPaths = ${tokenPaths.join(' | \n')}\n\n`
 
@@ -71,6 +76,13 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
   interface ComponentCustomProperties {
     $t: (path: Ref<TokenPaths> | TokenPaths) => string
     $tokens: (path: Ref<TokenPaths> | TokenPaths) => string
+  }
+}\n\n`
+
+      result = result +
+`declare module '@nuxt/schema' {
+  interface NuxtConfig {
+    theme: Partial<NuxtThemeConfig>
   }
 }\n\n`
 
@@ -83,11 +95,17 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
   styleDictionary.registerFormat({
     name: 'typescript/css-variables',
     formatter ({ dictionary }) {
-      let result = 'import type { ThemeTokens } from \'#tokens/types\'\n\n'
+      let result = 'import get from \'lodash.get\'\n\n'
 
-      result = result + 'export * from \'#tokens/types\'\n\n'
+      result = result + 'import type { ThemeTokens, TokenPaths } from \'./tokens-types\'\n\n'
+
+      result = result + 'export * from \'./tokens-types\'\n\n'
 
       result = result + `export const themeTokens: ThemeTokens = ${JSON.stringify(treeWalker(dictionary.tokens, false), null, 2)}\n\n`
+
+      result = result + 'export const $tokens = (path: TokenPaths) => get(themeTokens, path)\n\n'
+
+      result = result + 'export const $t = $tokens\n\n'
 
       return result
     }
@@ -96,9 +114,22 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
   styleDictionary.registerFormat({
     name: 'javascript/css-variables',
     formatter ({ dictionary }) {
-      let result = `export const themeTokens = ${JSON.stringify(treeWalker(dictionary.tokens, false), null, 2)}\n\n`
+      let result = 'import get from \'lodash.get\'\n\n'
 
-      result = result + 'export default themeTokens'
+      result = result + `export const themeTokens = ${JSON.stringify(treeWalker(dictionary.tokens, false), null, 2)}\n`
+
+      result = result +
+`\n
+/**
+ * Get a theme token by its path
+ * @typedef {import('token-types').TokenPaths} TokenPaths
+ * @param {TokenPaths} path
+ */
+export const $tokens = (path) => get(themeTokens, path)\n\n`
+
+      result = result + 'export const $t = $tokens\n\n'
+
+      result = result + 'export default { $t, $tokens, themeTokens }'
 
       return result
     }
@@ -108,7 +139,7 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
     tokens,
     platforms: {
       scss: {
-        transformGroup: 'scss',
+        transformGroup: 'tokens-js',
         buildPath,
         files: [
           {
@@ -138,7 +169,7 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
             format: 'typescript/css-variables'
           },
           {
-            destination: 'tokens.d.ts',
+            destination: 'tokens-types.d.ts',
             format: 'typescript/css-variables-declaration'
           }
         ]
@@ -156,7 +187,7 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
       },
 
       css: {
-        transformGroup: 'web',
+        transformGroup: 'tokens-js',
         buildPath,
         files: [
           {
@@ -178,7 +209,7 @@ export const generateTokens = async (tokens: DesignTokens, buildPath: string, si
   }
 
   // @ts-ignore
-  if (process.dev) { styleDictionary.cleanAllPlatforms() }
+  if (process?.dev) { styleDictionary.cleanAllPlatforms() }
 
   styleDictionary.buildAllPlatforms()
 

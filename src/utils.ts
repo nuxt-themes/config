@@ -4,6 +4,7 @@ import { generateTypes, resolveSchema } from 'untyped'
 import chalk from 'chalk'
 import { requireModule, useLogger } from '@nuxt/kit'
 import { name, version } from '../package.json'
+import type { NuxtThemeOptions, NuxtThemeTokens, NuxtThemeMeta, ModuleOptions } from './module'
 
 export interface NuxtLayer {
   config: any
@@ -11,18 +12,37 @@ export interface NuxtLayer {
   cwd: string
 }
 
+// Default options
+export const MODULE_DEFAULTS: ModuleOptions = {
+  meta: {
+    name: 'My Nuxt Theme',
+    description: 'My Nuxt Theme',
+    author: '',
+    motd: true
+  },
+  options: true,
+  tokens: true
+}
+
 // Logging
-export const logger = useLogger('nuxt-theme-kit')
-export const pkgName = chalk.greenBright(name)
-export const motd = () => logger.success(`Using ${pkgName} v${version}`)
+export const logger = useLogger('🎨')
+export const pkgName = chalk.magentaBright(name)
+export const motd = (metas: NuxtThemeMeta[]) => {
+  logger.info(`${pkgName} v${version} enabled!`)
+  metas.forEach(
+    (meta) => {
+      logger.info(`Using ${chalk.greenBright(meta.name)}${meta.author ? ` by ${chalk.greenBright(meta.author)}` : ''}`)
+    }
+  )
+}
 
 // Package datas
 export { name, version }
 
 /**
- * Theme merging function built with defu.
+ * Options merging function built with defu.
  */
-export const themeMerger = createDefu((obj, key, value) => {
+export const optionsMerger = createDefu((obj, key, value) => {
   // Arrays should overwrite and not be merged.
   if (obj[key] && Array.isArray(obj[key])) {
     obj[key] = value
@@ -30,41 +50,41 @@ export const themeMerger = createDefu((obj, key, value) => {
   }
 })
 
-export const resolveTokens = (layer: NuxtLayer) => {
-  const tokens = layer.config?.theme?.tokens
+export const resolveConfig = (layer: NuxtLayer, key: string, configFile = `${key}.config`) => {
+  const value = layer.config?.theme?.[key] || MODULE_DEFAULTS[key]
   let config = {}
 
-  if (!layer.config?.theme?.tokens) { return {} }
+  let filePath: string
 
-  let tokensFilePath: string
-
-  if (typeof tokens === 'boolean') {
-    tokensFilePath = resolve(layer.cwd, 'tokens.config')
-  } else if (typeof tokens === 'string') {
-    tokensFilePath = resolve(layer.cwd, tokens)
-  } else if (typeof tokens === 'object') {
-    config = tokens
+  if (typeof value === 'boolean') {
+    filePath = resolve(layer.cwd, configFile)
+  } else if (typeof value === 'string') {
+    filePath = resolve(layer.cwd, value)
+  } else if (typeof value === 'object') {
+    config = value
   }
 
-  if (tokensFilePath) {
-    const _tokensFile = requireModule(tokensFilePath, { clearCache: true })
-
-    if (_tokensFile) { config = _tokensFile }
+  if (filePath) {
+    try {
+      const _tokensFile = requireModule(filePath, { clearCache: true })
+      if (_tokensFile) { config = _tokensFile }
+    } catch (_) {}
   }
 
-  return { tokensFilePath, config }
+  return { filePath, config }
 }
 
 /**
  * Resolve `theme` config layers from `extends` layers and merge them via `Object.assign()`.
  */
 export const resolveTheme = (layers: NuxtLayer[]) => {
-  const tokensFilePaths = []
-  const metas = []
-  let tokens = {}
-  let defaults = {}
+  const tokensFilePaths: string[] = []
+  const optionsFilePaths: string[] = []
+  const metas: NuxtThemeMeta[] = []
+  let tokens = {} as NuxtThemeTokens
+  let options = {} as NuxtThemeOptions
 
-  for (const layer of layers) {
+  const splitLayer = (layer: NuxtLayer) => {
     if (layer.config.theme) {
       // Add metas to list
       // Leep trace of every theme used.
@@ -73,34 +93,34 @@ export const resolveTheme = (layers: NuxtLayer[]) => {
         delete layer.config.theme.meta
       }
 
+      // Deeply merge layer options
+      // Results in default options typings.
+      if (layer.config.theme.options || MODULE_DEFAULTS.options) {
+        const { config: layerOptions, filePath: _layerOptionsFilePath } = resolveConfig(layer, 'options', 'theme.config')
+
+        if (_layerOptionsFilePath) { optionsFilePaths.push(_layerOptionsFilePath) }
+
+        options = optionsMerger(options, layerOptions)
+      }
+
       // Deeply merge tokens
       // In opposition to defaults, here arrays should also be merged.
-      if (layer.config.theme.tokens) {
-        const { config: layerTokens, tokensFilePath: _layerTokensFilePath } = resolveTokens(layer)
+      if (layer.config.theme.tokens || MODULE_DEFAULTS.options) {
+        const { config: layerTokens, filePath: _layerTokensFilePath } = resolveConfig(layer, 'tokens', 'tokens.config')
 
         if (_layerTokensFilePath) { tokensFilePaths.push(_layerTokensFilePath) }
 
         tokens = defu(tokens, layerTokens)
       }
-
-      // Merge defaults
-      defaults = themeMerger(defaults, layer.config.theme)
     }
   }
 
-  return { tokensFilePaths, metas, tokens, defaults }
+  for (const layer of layers) { splitLayer(layer) }
+
+  return { optionsFilePaths, tokensFilePaths, metas, tokens, options }
 }
 
 /**
  * Generate a typing declaration from the theme configuration.
  */
-export const generateTyping = (theme) => {
-  if (theme?.metas) { delete theme.metas }
-
-  return `${generateTypes(resolveSchema(theme), { addDefaults: true, allowExtraKeys: true, interfaceName: 'NuxtThemeConfig' })}\n
-declare module '@nuxt/schema' {
-  interface NuxtConfig {
-    theme: Partial<NuxtThemeConfig>
-  }
-}`
-}
+export const generateOptionsTyping = (options: Partial<NuxtThemeOptions>) => `${generateTypes(resolveSchema(options), { addDefaults: true, allowExtraKeys: true, interfaceName: 'ThemeOptions' })}\n\n`

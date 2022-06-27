@@ -1,5 +1,5 @@
 import { defineEventHandler } from 'h3'
-import { generateTokens } from '#tokens'
+import { generateTokens } from '#theme/server'
 import { useRuntimeConfig } from '#imports'
 
 export default defineEventHandler(async () => {
@@ -7,7 +7,7 @@ export default defineEventHandler(async () => {
 
   const { tokensDir } = runtimeConfig?.public
 
-  const { tokens } = runtimeConfig?.public?.theme
+  const { tokens } = runtimeConfig?.theme
 
   await generateTokens(tokens, tokensDir)
 })
