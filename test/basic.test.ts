@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'url'
 import { describe, test, expect } from 'vitest'
 import { $fetch, setup } from '@nuxt/test-utils'
-import { generateTokens } from '../src/tokens/generate'
+import { generateTokens } from '../src/runtime/server/tokens'
 
 const fixturePath = fileURLToPath(new URL('./fixtures/basic', import.meta.url))
 

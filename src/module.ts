@@ -10,7 +10,7 @@ import { withTrailingSlash } from 'ufo'
 import type { DesignTokens } from 'browser-style-dictionary/types/browser'
 import type { ViteDevServer } from 'vite'
 import type { Nitro } from 'nitropack'
-import { generateTokens } from './tokens/generate'
+import { generateTokens } from './runtime/server/tokens'
 import { logger, name, version, generateOptionsTyping, NuxtLayer, resolveTheme, motd, MODULE_DEFAULTS } from './utils'
 import type { ThemeTokens, ThemeOptions } from '#theme/types'
 
@@ -169,7 +169,7 @@ export default defineNuxtModule<ModuleOptions>({
           handler: resolveRuntimeModule('./server/api/tokens/generate')
         })
 
-        nitroConfig.alias['#theme/server'] = resolveRuntime('./tokens/index')
+        nitroConfig.alias['#theme/server'] = resolveRuntime('./runtime/server/tokens')
       })
 
       buildTokens = async () => {

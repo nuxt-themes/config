@@ -1,6 +1,6 @@
 import type { Core as Instance } from 'browser-style-dictionary/types/browser'
 import StyleDictionary from 'browser-style-dictionary/browser.js'
-import type { NuxtThemeTokens } from '../module'
+import type { NuxtThemeTokens } from '../../module'
 
 const DesignTokenType =
 `interface DesignToken {
