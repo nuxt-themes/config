@@ -127,8 +127,6 @@ export default defineNuxtModule<ModuleOptions>({
         // Resolve theme configuration from every layer
         const { optionsFilePaths, tokensFilePaths, tokens, options } = resolveTheme(layers as NuxtLayer[])
 
-        console.log({ tokens, options })
-
         privateConfig.tokensFilePaths = tokensFilePaths
         privateConfig.optionsFilePaths = optionsFilePaths
 

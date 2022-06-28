@@ -24,8 +24,6 @@ export default defineNuxtPlugin(() => {
           // Update theme
           theme.value = options
 
-          console.log({ options, tokens })
-
           await $fetch('/api/_theme/options', {
             method: 'POST',
             body: JSON.stringify({ options })
