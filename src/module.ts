@@ -10,7 +10,7 @@ import {
 import { withTrailingSlash } from 'ufo'
 import type { DesignTokens } from 'browser-style-dictionary/types/browser'
 import type { ViteDevServer } from 'vite'
-import { generateTokens } from './runtime/server/tokens'
+import { generateTokens } from './runtime/server/utils'
 import { logger, name, version, generateOptionsTyping, NuxtLayer, resolveTheme, motd, MODULE_DEFAULTS } from './utils'
 import type { ThemeTokens, ThemeOptions } from '#theme/types'
 
