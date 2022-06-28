@@ -10,8 +10,10 @@ import {
 import { withTrailingSlash } from 'ufo'
 import type { DesignTokens } from 'browser-style-dictionary/types/browser'
 import type { ViteDevServer } from 'vite'
+import { join } from 'pathe'
 import { generateTokens } from './runtime/server/utils'
 import { logger, name, version, generateOptionsTyping, NuxtLayer, resolveTheme, motd, MODULE_DEFAULTS } from './utils'
+// @ts-ignore - Might be unavailable whens stubbing occurs
 import type { ThemeTokens, ThemeOptions } from '#theme/types'
 
 export interface NuxtThemeMeta {
@@ -97,7 +99,7 @@ export default defineNuxtModule<ModuleOptions>({
     privateConfig.themeDir = themeDir
 
     // Create initial targets if tokens are enabled and directory does not exist
-    if (!existsSync(themeDir) && !!options.tokens) {
+    if (!existsSync(join(themeDir, 'tokens')) && !!options.tokens) {
       const { tokens } = resolveTheme(layers as NuxtLayer[])
       await generateTokens(tokens, themeDir, true, false)
     }
@@ -117,7 +119,6 @@ export default defineNuxtModule<ModuleOptions>({
 
     // buildTokens proxy
     let buildTokens: () => Promise<void> = () => new Promise(resolve => resolve())
-
     nuxt.hook('nitro:init', async (nitro) => {
       const refreshTheme = async () => {
         // Resolve theme configuration from every layer
@@ -196,6 +197,15 @@ export default defineNuxtModule<ModuleOptions>({
       // Transpile browser-style-dictionary
       nuxt.options.build.transpile.push('browser-style-dictionary')
 
+      // Apply aliases
+      nuxt.options.alias = nuxt.options.alias || {}
+      nuxt.options.alias['#theme/client'] = resolveThemeDir('./tokens')
+      nuxt.options.alias['#theme/types'] = resolveThemeDir('./tokens-types')
+
+      // Inject CSS
+      nuxt.options.css = nuxt.options.css || []
+      nuxt.options.css = [...nuxt.options.css, resolveThemeDir('./variables.css')]
+
       // Inject typings
       nuxt.hook('prepare:types', (opts) => {
         opts.references.push({ path: resolveThemeDir('./theme.d.ts') })
@@ -232,16 +242,6 @@ export default defineNuxtModule<ModuleOptions>({
 
         await buildTokens()
       })
-
-      nuxt.options.alias = nuxt.options.alias || {}
-
-      nuxt.options.alias['#theme/client'] = resolveThemeDir('./tokens')
-
-      nuxt.options.alias['#theme/types'] = resolveThemeDir('./tokens-types')
-
-      nuxt.options.css = nuxt.options.css || []
-
-      nuxt.options.css = [...nuxt.options.css, resolveThemeDir('./variables.css')]
 
       /**
        * Runtime
