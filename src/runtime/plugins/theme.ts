@@ -6,13 +6,13 @@ export default defineNuxtPlugin(() => {
   const theme = useState('nuxt-theme-kit-theme-options', () => ({}))
 
   // Route middleware
-  addRouteMiddleware(async (to) => {
-    const options = await $fetch('/api/_theme/options', {
-      method: 'GET'
-    })
-
-    theme.value = options
-  })
+  addRouteMiddleware(
+    async () => {
+      theme.value = await $fetch('/api/_theme/options', {
+        method: 'GET'
+      })
+    }
+  )
 
   // @ts-ignore
   if (import.meta.hot) {
@@ -20,19 +20,17 @@ export default defineNuxtPlugin(() => {
     import.meta.hot.on(
       'nuxt-theme-kit:update' as any,
       async ({ tokens, options }: { options: ThemeOptions, tokens: ThemeTokens}) => {
-        nextTick(async () => {
-          // Update theme
-          theme.value = options
+        // Update theme
+        theme.value = options
 
-          await $fetch('/api/_theme/options', {
-            method: 'POST',
-            body: JSON.stringify({ options })
-          })
+        await $fetch('/api/_theme/options', {
+          method: 'POST',
+          body: JSON.stringify({ options })
+        })
 
-          await $fetch('/api/_theme/tokens', {
-            method: 'POST',
-            body: JSON.stringify({ tokens })
-          })
+        await $fetch('/api/_theme/tokens', {
+          method: 'POST',
+          body: JSON.stringify({ tokens })
         })
       }
     )

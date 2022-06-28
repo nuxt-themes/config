@@ -6,4 +6,12 @@ import { defineThemeTokens } from '../src/module'
  */
 
 export default defineThemeTokens({
+  colors: {
+    black: {
+      value: 'black'
+    },
+    grape: {
+      value: '#381d4d'
+    }
+  }
 })
