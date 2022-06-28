@@ -1,7 +1,8 @@
 import { defineThemeTokens } from '../src/module'
 
 /**
- * Tokens options
+ * Design Tokens options
+ * Powered by Style Dictionary
  */
 
 export default defineThemeTokens({
