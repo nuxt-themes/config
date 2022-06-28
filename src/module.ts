@@ -98,9 +98,12 @@ export default defineNuxtModule<ModuleOptions>({
     const { resolve: resolveThemeDir } = createResolver(themeDir)
     privateConfig.themeDir = themeDir
 
+    // Initial theme resolving
+    const { tokens, metas } = resolveTheme(layers as NuxtLayer[])
+    privateConfig.metas = metas
+
     // Create initial targets if tokens are enabled and directory does not exist
     if (!existsSync(join(themeDir, 'tokens')) && !!options.tokens) {
-      const { tokens } = resolveTheme(layers as NuxtLayer[])
       await generateTokens(tokens, themeDir, true, false)
     }
 
@@ -122,16 +125,17 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.hook('nitro:init', async (nitro) => {
       const refreshTheme = async () => {
         // Resolve theme configuration from every layer
-        const { optionsFilePaths, tokensFilePaths, tokens, metas, options } = resolveTheme(layers as NuxtLayer[])
+        const { optionsFilePaths, tokensFilePaths, tokens, options } = resolveTheme(layers as NuxtLayer[])
 
-        privateConfig.metas = metas
+        console.log({ tokens, options })
+
         privateConfig.tokensFilePaths = tokensFilePaths
         privateConfig.optionsFilePaths = optionsFilePaths
 
         await nitro.storage.setItem('cache:theme-kit:tokens.json', tokens)
         await nitro.storage.setItem('cache:theme-kit:options.json', options)
 
-        return { optionsFilePaths, tokensFilePaths, tokens, metas, options }
+        return { optionsFilePaths, tokensFilePaths, tokens, options }
       }
 
       // Grab options on init
