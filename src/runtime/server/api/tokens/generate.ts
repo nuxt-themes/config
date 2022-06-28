@@ -1,13 +1,15 @@
 import { defineEventHandler } from 'h3'
 import { generateTokens } from '#theme/server'
-import { useRuntimeConfig } from '#imports'
+import { useRuntimeConfig, useStorage } from '#imports'
 
 export default defineEventHandler(async () => {
   const runtimeConfig = useRuntimeConfig()
 
-  const { tokensDir } = runtimeConfig?.public
+  const { themeDir } = runtimeConfig?.theme
 
-  const { tokens } = runtimeConfig?.theme
+  const storage = useStorage()
 
-  await generateTokens(tokens, tokensDir)
+  const tokens = await storage.getItem('cache:theme-kit:tokens.json')
+
+  await generateTokens(tokens, themeDir)
 })

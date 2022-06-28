@@ -44,7 +44,12 @@ const treeWalker = (obj, typing: boolean = true) => {
   return type
 }
 
-export const generateTokens = async (tokens: NuxtThemeTokens, buildPath: string, silent = true) => {
+export const generateTokens = async (
+  tokens: NuxtThemeTokens,
+  buildPath: string,
+  silent = true,
+  force: boolean = true
+) => {
   let styleDictionary: Instance = StyleDictionary
 
   styleDictionary.fileHeader = {}
@@ -209,7 +214,7 @@ export const $tokens = (path) => get(themeTokens, path)\n\n`
   }
 
   // @ts-ignore
-  if (process?.dev) { styleDictionary.cleanAllPlatforms() }
+  if (process?.dev && force) { styleDictionary.cleanAllPlatforms() }
 
   styleDictionary.buildAllPlatforms()
 

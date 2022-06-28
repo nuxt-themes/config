@@ -5,19 +5,19 @@ export default {
     extend: {
       colors: {
         black: {
-          DEFAULT: $t('colors.black').variable
+          DEFAULT: $t('colors.black')?.variable
         },
         grape: {
-          DEFAULT: $t('colors.grape').variable
+          DEFAULT: $t('colors.grape')?.variable
         },
         lila: {
-          DEFAULT: $t('colors.lila').variable
+          DEFAULT: $t('colors.lila')?.variable
         },
         grey: {
-          DEFAULT: $t('colors.grey').variable
+          DEFAULT: $t('colors.grey')?.variable
         },
         lavender: {
-          DEFAULT: $t('colors.lavender').variable
+          DEFAULT: $t('colors.lavender')?.variable
         }
       }
     }
