@@ -1,13 +1,13 @@
 import { defineTheme } from '../../src/module'
 
 export default defineTheme({
-  header: {
-    text: 'My Theme'
-  },
   footer: {
-    text: '🎨 Tahul'
+    text: 'Nuxt Theme Kit'
+  },
+  header: {
+    text: 'My Nuxt Theme'
   },
   credits: {
-    text: 'Made with Nuxt Theme Kit'
+    text: 'Made with love by NuxtLabs'
   }
 })

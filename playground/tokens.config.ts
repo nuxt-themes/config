@@ -5,6 +5,4 @@ import { defineThemeTokens } from '../src/module'
  */
 
 export default defineThemeTokens({
-  colors: {
-  }
 })
