@@ -105,7 +105,7 @@ export const resolveTheme = (layers: NuxtLayer[]) => {
 
       // Deeply merge tokens
       // In opposition to defaults, here arrays should also be merged.
-      if (layer.config.theme.tokens || MODULE_DEFAULTS.options) {
+      if (layer.config.theme.tokens || MODULE_DEFAULTS.tokens) {
         const { config: layerTokens, filePath: _layerTokensFilePath } = resolveConfig(layer, 'tokens', 'tokens.config')
 
         if (_layerTokensFilePath) { tokensFilePaths.push(_layerTokensFilePath) }

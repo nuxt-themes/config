@@ -1,4 +1,5 @@
 import { defineEventHandler, isMethod, useBody } from 'h3'
+// @ts-ignore
 import { useStorage } from '#imports'
 
 export default defineEventHandler(async (event) => {

@@ -4,7 +4,10 @@ import type { NuxtThemeTokens } from '../../module'
 
 const DesignTokenType =
 `interface DesignToken {
+  /* The raw value you specified in your token declaration. */
   value: any;
+  /* CSS Variable reference that gets generated. */
+  variable: string;
   name?: string;
   comment?: string;
   themeable?: boolean;
@@ -18,6 +21,13 @@ const DesignTokenType =
   };
   [key: string]: any;
 }`
+
+const DesignTokensType =
+`
+export interface DesignTokens {
+  [key: string]: DesignTokens | DesignToken;
+}
+`
 
 const treeWalker = (obj, typing: boolean = true) => {
   let type = Object.create(null)

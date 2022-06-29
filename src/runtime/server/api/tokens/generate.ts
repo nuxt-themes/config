@@ -1,5 +1,7 @@
 import { defineEventHandler } from 'h3'
+// @ts-ignore
 import { generateTokens } from '#theme/server'
+// @ts-ignore
 import { useRuntimeConfig, useStorage } from '#imports'
 
 export default defineEventHandler(async () => {
