@@ -74,7 +74,7 @@ export const generateTokens = async (
     formatter ({ dictionary }) {
       let result = 'import type { Ref } from \'vue\'\n\n'
 
-      result = result + 'import type { DesignTokens } from \'browser-style-dictionary/types/browser\'\n\n'
+      result = result + `export ${DesignTokensType}\n\n`
 
       result = result + 'export * from \'./options.d\'\n\n'
 
