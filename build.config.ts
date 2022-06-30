@@ -2,6 +2,12 @@ import { defineBuildConfig } from 'unbuild'
 
 export default defineBuildConfig({
   stub: false,
+  entries: [
+    {
+      input: './src/index.ts',
+      declaration: true
+    }
+  ],
   externals: [
     '#theme/types',
     'browser-style-dictionary',

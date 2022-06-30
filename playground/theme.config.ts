@@ -1,4 +1,4 @@
-import { defineTheme } from '../src/module'
+import { defineTheme } from '../src'
 
 /**
  * Theme options

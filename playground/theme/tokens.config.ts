@@ -1,4 +1,4 @@
-import { defineThemeTokens } from '../../src/module'
+import { defineThemeTokens } from '../../src'
 
 export default defineThemeTokens({
   colors: {

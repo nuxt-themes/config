@@ -1,4 +1,4 @@
-import { defineThemeTokens } from '../src/module'
+import { defineThemeTokens } from '../src'
 
 /**
  * Design Tokens options
