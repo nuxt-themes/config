@@ -4,7 +4,7 @@ import { generateTypes, resolveSchema } from 'untyped'
 import chalk from 'chalk'
 import { requireModule, useLogger } from '@nuxt/kit'
 import { name, version } from '../package.json'
-import type { NuxtThemeOptions, NuxtThemeTokens, NuxtThemeMeta, ModuleOptions } from './module'
+import type { NuxtThemeOptions, NuxtThemeTokens, NuxtThemeMeta, ModuleOptions } from './index'
 
 export interface NuxtLayer {
   config: any

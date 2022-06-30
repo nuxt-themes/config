@@ -7,68 +7,11 @@ import {
   addAutoImport
 } from '@nuxt/kit'
 import { withTrailingSlash } from 'ufo'
-import type { DesignTokens } from 'browser-style-dictionary/types/browser'
 import type { ViteDevServer } from 'vite'
 import { defu } from 'defu'
 import { generateTokens } from './runtime/server/utils'
 import { logger, name, version, generateOptionsTyping, NuxtLayer, resolveTheme, motd, MODULE_DEFAULTS } from './utils'
-// @ts-ignore - Might be unavailable whens stubbing occurs
-import type { ThemeTokens, ThemeOptions } from '#theme/types'
-
-export interface NuxtThemeMeta {
-  name?: string
-  description?: string
-  author?: string
-  url?: string
-  motd?: boolean
-}
-
-export interface NuxtThemeOptions extends ThemeOptions {
-  [key: string]: any
-}
-
-export interface NuxtThemeTokens extends ThemeTokens, DesignTokens {
-}
-
-export interface NuxtThemeConfig {
-  meta?: NuxtThemeMeta
-  options?: NuxtThemeOptions | boolean | string
-  tokens?: NuxtThemeTokens | boolean | string
-}
-
-export { generateTokens }
-
-export interface ModuleOptions extends NuxtThemeConfig {
-  // Module options
-}
-
-export interface ModuleHooks {
-  // Module hooks
-}
-
-export interface ModulePublicRuntimeConfig {
-  // Module public config
-}
-
-// Non-reactive data taken from initial boot
-export interface ModulePrivateRuntimeConfig {
-  themeDir?: string
-  metas?: NuxtThemeMeta[]
-  tokensFilePaths?: Array<string>
-  optionsFilePaths?: Array<string>
-}
-
-declare module '@nuxt/schema' {
-  interface PublicRuntimeConfig {
-    // @ts-ignore
-    theme?: ModulePublicRuntimeConfig;
-  }
-
-  interface RuntimeConfig {
-    // @ts-ignore
-    theme?: ModulePrivateRuntimeConfig;
-  }
-}
+import type { NuxtThemeTokens, ModuleOptions } from './index'
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
