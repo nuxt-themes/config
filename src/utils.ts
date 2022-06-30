@@ -25,7 +25,7 @@ export const MODULE_DEFAULTS: ModuleOptions = {
 }
 
 // Logging
-export const logger = useLogger('🎨')
+export const logger = useLogger('theme')
 export const pkgName = chalk.magentaBright(name)
 export const motd = (metas: NuxtThemeMeta[]) => {
   logger.info(`${pkgName} v${version} enabled!`)
@@ -85,33 +85,31 @@ export const resolveTheme = (layers: NuxtLayer[]) => {
   let options = {} as NuxtThemeOptions
 
   const splitLayer = (layer: NuxtLayer) => {
-    if (layer.config.theme) {
-      // Add metas to list
-      // Leep trace of every theme used.
-      if (layer.config.theme.meta) {
-        metas.push(layer.config.theme.meta)
-        delete layer.config.theme.meta
-      }
+    // Add metas to list
+    // Leep trace of every theme used.
+    if (layer.config?.theme?.meta) {
+      metas.push(layer.config.theme.meta)
+      delete layer.config.theme.meta
+    }
 
-      // Deeply merge layer options
-      // Results in default options typings.
-      if (layer.config.theme.options || MODULE_DEFAULTS.options) {
-        const { config: layerOptions, filePath: _layerOptionsFilePath } = resolveConfig(layer, 'options', 'theme.config')
+    // Deeply merge layer options
+    // Results in default options typings.
+    if (layer.config?.theme?.options || MODULE_DEFAULTS.options) {
+      const { config: layerOptions, filePath: _layerOptionsFilePath } = resolveConfig(layer, 'options', 'theme.config')
 
-        if (_layerOptionsFilePath) { optionsFilePaths.push(_layerOptionsFilePath) }
+      if (_layerOptionsFilePath) { optionsFilePaths.push(_layerOptionsFilePath) }
 
-        options = optionsMerger(options, layerOptions)
-      }
+      options = optionsMerger(options, layerOptions)
+    }
 
-      // Deeply merge tokens
-      // In opposition to defaults, here arrays should also be merged.
-      if (layer.config.theme.tokens || MODULE_DEFAULTS.tokens) {
-        const { config: layerTokens, filePath: _layerTokensFilePath } = resolveConfig(layer, 'tokens', 'tokens.config')
+    // Deeply merge tokens
+    // In opposition to defaults, here arrays should also be merged.
+    if (layer.config?.theme?.tokens || MODULE_DEFAULTS.tokens) {
+      const { config: layerTokens, filePath: _layerTokensFilePath } = resolveConfig(layer, 'tokens', 'tokens.config')
 
-        if (_layerTokensFilePath) { tokensFilePaths.push(_layerTokensFilePath) }
+      if (_layerTokensFilePath) { tokensFilePaths.push(_layerTokensFilePath) }
 
-        tokens = defu(tokens, layerTokens)
-      }
+      tokens = defu(tokens, layerTokens)
     }
   }
 
