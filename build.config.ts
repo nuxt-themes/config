@@ -5,7 +5,8 @@ export default defineBuildConfig({
   entries: [
     {
       input: './src/index.ts',
-      declaration: true
+      declaration: true,
+      name: 'index'
     }
   ],
   externals: [
