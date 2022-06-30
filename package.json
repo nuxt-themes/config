@@ -44,8 +44,8 @@
   },
   "dependencies": {
     "@nuxt/kit": "^3.0.0-rc.4",
-    "lodash.get": "^4.4.2",
     "@types/lodash.get": "^4.4.7",
+    "lodash.get": "^4.4.2",
     "untyped": "^0.4.4"
   },
   "devDependencies": {
@@ -63,6 +63,7 @@
     "husky": "^8.0.1",
     "jiti": "^1.14.0",
     "lint-staged": "^13.0.3",
+    "lodash": "^4.17.21",
     "nuxt": "npm:nuxt3@latest",
     "pathe": "^0.3.0",
     "vitest": "^0.16.0"

@@ -1,4 +1,3 @@
-import { existsSync } from 'fs'
 import {
   defineNuxtModule,
   createResolver,
@@ -10,7 +9,7 @@ import {
 import { withTrailingSlash } from 'ufo'
 import type { DesignTokens } from 'browser-style-dictionary/types/browser'
 import type { ViteDevServer } from 'vite'
-import { join } from 'pathe'
+import defu from 'defu'
 import { generateTokens } from './runtime/server/utils'
 import { logger, name, version, generateOptionsTyping, NuxtLayer, resolveTheme, motd, MODULE_DEFAULTS } from './utils'
 // @ts-ignore - Might be unavailable whens stubbing occurs
@@ -103,8 +102,10 @@ export default defineNuxtModule<ModuleOptions>({
     privateConfig.metas = metas
 
     // Create initial targets if tokens are enabled and directory does not exist
-    if (!existsSync(join(themeDir, 'tokens')) && !!options.tokens) {
+    if (nuxt.options.dev) {
       await generateTokens(tokens, themeDir, true, false)
+    } else {
+      nuxt.hook('build:before', async () => await generateTokens(tokens, themeDir, true, false))
     }
 
     // `runtime/` resolver
@@ -197,7 +198,7 @@ export default defineNuxtModule<ModuleOptions>({
     // Enable design tokens feature
     if (options.tokens) {
       // Transpile browser-style-dictionary
-      nuxt.options.build.transpile.push('browser-style-dictionary')
+      nuxt.options.build.transpile.push('browser-style-dictionary/browser.js')
 
       // Apply aliases
       nuxt.options.alias = nuxt.options.alias || {}
@@ -227,6 +228,20 @@ export default defineNuxtModule<ModuleOptions>({
           method: 'all',
           route: '/api/_theme/tokens',
           handler: resolveRuntimeModule('./server/api/tokens/index')
+        })
+
+        nitroConfig.prerender = nitroConfig.prerender || {}
+        nitroConfig.prerender.routes = nitroConfig.prerender.routes || []
+        nitroConfig.bundledStorage = nitroConfig.bundledStorage || []
+        nitroConfig.bundledStorage.push('/cache/theme-kit')
+        nitroConfig.bundledStorage.push('/theme')
+
+        nitroConfig.externals = defu(typeof nitroConfig.externals === 'object' ? nitroConfig.externals : {}, {
+          inline: [
+            // Inline module runtime in Nitro bundle
+            'browser-style-dictionary',
+            resolveRuntime('./')
+          ]
         })
       })
 
@@ -266,14 +281,6 @@ export default defineNuxtModule<ModuleOptions>({
         name: 'useTheme',
         as: 'useTheme'
       })
-
-      // Initial build
-      await buildTokens()
-
-      if (!nuxt.options.dev) {
-        // Build
-        nuxt.hook('build:before', buildTokens)
-      }
     }
   }
 })
