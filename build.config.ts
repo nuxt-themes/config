@@ -5,7 +5,7 @@ export default defineBuildConfig({
   entries: [
     {
       input: './src/index.ts',
-      declaration: true,
+      builder: 'rollup',
       name: 'index'
     }
   ],
