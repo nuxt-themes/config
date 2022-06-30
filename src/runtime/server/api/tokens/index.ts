@@ -10,12 +10,14 @@ export default defineEventHandler(async (event) => {
   const { themeDir } = runtimeConfig?.theme
 
   if (isMethod(event, 'POST')) {
-    const { tokens } = await useBody(event)
+    try {
+      const { tokens } = await useBody(event)
 
-    if (tokens) {
-      await storage.setItem('cache:theme-kit:tokens.json', tokens)
-      await generateTokens(tokens, themeDir, true, false)
-    }
+      if (tokens) {
+        await storage.setItem('cache:theme-kit:tokens.json', tokens)
+        await generateTokens(tokens, themeDir, true, false)
+      }
+    } catch (_) {}
   }
 
   return await storage.getItem('cache:theme-kit:tokens.json')

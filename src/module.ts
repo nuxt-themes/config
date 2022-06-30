@@ -9,7 +9,7 @@ import {
 import { withTrailingSlash } from 'ufo'
 import type { DesignTokens } from 'browser-style-dictionary/types/browser'
 import type { ViteDevServer } from 'vite'
-import defu from 'defu'
+import { defu } from 'defu'
 import { generateTokens } from './runtime/server/utils'
 import { logger, name, version, generateOptionsTyping, NuxtLayer, resolveTheme, motd, MODULE_DEFAULTS } from './utils'
 // @ts-ignore - Might be unavailable whens stubbing occurs
@@ -121,9 +121,10 @@ export default defineNuxtModule<ModuleOptions>({
       src: resolveRuntimeModule('./plugins/theme')
     })
 
-    // buildTokens proxy
-    let buildTokens: () => Promise<void> = () => new Promise(resolve => resolve())
-    nuxt.hook('nitro:init', async (nitro) => {
+    // Build initial tokens
+    let buildTokens = async (_: any) => {}
+
+    nuxt.hook('nitro:build:before', async (nitro) => {
       const refreshTheme = async () => {
         // Resolve theme configuration from every layer
         const { optionsFilePaths, tokensFilePaths, tokens, options } = resolveTheme(layers as NuxtLayer[])
@@ -146,41 +147,48 @@ export default defineNuxtModule<ModuleOptions>({
         getContents: () => generateOptionsTyping(options)
       })
 
-      // Development reload (theme.config | tokens.config)
-      if (nuxt.options.dev) {
-      // TODO: Replace by custom WS server
-        nuxt.hook('vite:serverCreated', (viteServer: ViteDevServer) => {
-          if (privateConfig.tokensFilePaths.length || privateConfig.optionsFilePaths.length) {
-            nuxt.hook('builder:watch', async (_, path) => {
-              const isTokenFile = privateConfig.tokensFilePaths.some(tokensFilePath => tokensFilePath.includes(path.replace('.js', '')) || tokensFilePath.includes(path.replace('.ts', '')))
-              const isOptionsFile = privateConfig.optionsFilePaths.some(optionsFilePath => optionsFilePath.includes(path.replace('.js', '')) || optionsFilePath.includes(path.replace('.ts', '')))
-
-              if (isTokenFile || isOptionsFile) {
-                const { tokens, options, tokensFilePaths, optionsFilePaths } = resolveTheme(layers as NuxtLayer[])
-
-                privateConfig.tokensFilePaths = tokensFilePaths
-                privateConfig.optionsFilePaths = optionsFilePaths
-
-                viteServer.ws.send({
-                  type: 'custom',
-                  event: 'nuxt-theme-kit:update',
-                  data: {
-                    tokens,
-                    options
-                  }
-                })
-
-                await nitro.storage.setItem('cache:theme-kit:tokens.json', tokens)
-                await nitro.storage.setItem('cache:theme-kit:options.json', options)
-              }
-            })
-          }
-        })
-      }
-
       // Print console messages
       motd(privateConfig.metas)
+
+      // Build initial tokens
+      await buildTokens(nitro)
     })
+
+    // Development reload
+    if (nuxt.options.dev) {
+      const hasTokens = !!options.tokens
+      const hasOptions = !!options.options
+
+      nuxt.hook('nitro:init', (nitro) => {
+        nuxt.hook('vite:serverCreated', (viteServer: ViteDevServer) => {
+          nuxt.hook('builder:watch', async (_, path) => {
+            const isTokenFile = hasTokens ? privateConfig.tokensFilePaths.some(tokensFilePath => tokensFilePath.includes(path.replace('.js', '')) || tokensFilePath.includes(path.replace('.ts', ''))) : false
+            const isOptionsFile = hasOptions ? privateConfig.optionsFilePaths.some(optionsFilePath => optionsFilePath.includes(path.replace('.js', '')) || optionsFilePath.includes(path.replace('.ts', ''))) : false
+
+            if (isTokenFile || isOptionsFile) {
+              const { tokens, options, tokensFilePaths, optionsFilePaths } = resolveTheme(layers as NuxtLayer[])
+
+              privateConfig.tokensFilePaths = hasTokens ? tokensFilePaths : []
+              privateConfig.optionsFilePaths = hasOptions ? optionsFilePaths : []
+
+              await nitro.storage.setItem('cache:theme-kit:tokens.json', hasTokens ? tokens || {} : {})
+              await nitro.storage.setItem('cache:theme-kit:options.json', hasOptions ? options || {} : {})
+
+              viteServer.ws.send({
+                type: 'custom',
+                event: 'nuxt-theme-kit:update',
+                data: {
+                  tokens: hasTokens ? tokens : {},
+                  options: hasOptions ? options : {}
+                }
+              })
+
+              if (hasTokens) { await buildTokens(nitro) }
+            }
+          })
+        })
+      })
+    }
 
     // Push options handlers
     nuxt.hook('nitro:config', (nitroConfig) => {
@@ -197,6 +205,19 @@ export default defineNuxtModule<ModuleOptions>({
 
     // Enable design tokens feature
     if (options.tokens) {
+      // Set buildTokens to real function as the feature is enabled
+      buildTokens = async (nitro) => {
+        try {
+          const tokens = await nitro.storage.getItem('cache:theme-kit:tokens.json') as NuxtThemeTokens
+          await generateTokens(tokens, themeDir)
+          logger.success('Tokens built succesfully!')
+        } catch (e) {
+          logger.error('Could not build tokens!')
+          logger.error(e.message)
+        }
+      }
+      await generateTokens(tokens, themeDir)
+
       // Transpile browser-style-dictionary
       nuxt.options.build.transpile.push('browser-style-dictionary/browser.js')
 
@@ -232,32 +253,22 @@ export default defineNuxtModule<ModuleOptions>({
 
         nitroConfig.prerender = nitroConfig.prerender || {}
         nitroConfig.prerender.routes = nitroConfig.prerender.routes || []
+        nitroConfig.prerender.routes.push('/api/_theme/tokens')
+        nitroConfig.prerender.routes.push('/api/_theme/options')
         nitroConfig.bundledStorage = nitroConfig.bundledStorage || []
         nitroConfig.bundledStorage.push('/cache/theme-kit')
         nitroConfig.bundledStorage.push('/theme')
 
         nitroConfig.externals = defu(typeof nitroConfig.externals === 'object' ? nitroConfig.externals : {}, {
           inline: [
-            // Inline module runtime in Nitro bundle
+            'lodash',
             'browser-style-dictionary',
-            resolveRuntime('./')
+            'browser-style-dictionary/lib',
+            'browser-style-dictionary/browser',
+            // Inline module runtime in Nitro bundle
+            resolveRuntime()
           ]
         })
-      })
-
-      nuxt.hook('nitro:init', async (nitro) => {
-        buildTokens = async () => {
-          try {
-            const tokens = await nitro.storage.getItem('cache:theme-kit:tokens.json') as NuxtThemeTokens
-            await generateTokens(tokens, themeDir)
-            logger.success('Tokens built succesfully!')
-          } catch (e) {
-            logger.error('Could not build tokens!')
-            logger.error(e.message)
-          }
-        }
-
-        await buildTokens()
       })
 
       /**

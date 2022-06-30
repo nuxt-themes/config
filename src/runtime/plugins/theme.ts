@@ -19,19 +19,8 @@ export default defineNuxtPlugin(() => {
     // @ts-ignore
     import.meta.hot.on(
       'nuxt-theme-kit:update' as any,
-      async ({ tokens, options }: { options: ThemeOptions, tokens: ThemeTokens}) => {
-        // Update theme
+      ({ options }: { options: ThemeOptions, tokens: ThemeTokens}) => {
         theme.value = options
-
-        await $fetch('/api/_theme/options', {
-          method: 'POST',
-          body: JSON.stringify({ options })
-        })
-
-        await $fetch('/api/_theme/tokens', {
-          method: 'POST',
-          body: JSON.stringify({ tokens })
-        })
       }
     )
   }

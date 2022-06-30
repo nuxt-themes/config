@@ -5,7 +5,4 @@ import { defineTheme } from '../src'
  */
 
 export default defineTheme({
-  footer: {
-    text: 'My Favorite Theming System'
-  }
 })
