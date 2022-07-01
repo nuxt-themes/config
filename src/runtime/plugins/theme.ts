@@ -9,7 +9,8 @@ export default defineNuxtPlugin(() => {
   addRouteMiddleware(
     async () => {
       theme.value = await $fetch('/api/_theme/options', {
-        method: 'GET'
+        method: 'GET',
+        responseType: 'json'
       })
     }
   )
