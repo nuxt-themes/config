@@ -1,4 +1,5 @@
 import type { DesignTokens } from 'browser-style-dictionary/types/browser'
+import palette from './palette'
 import { generateTokens } from './runtime/server/utils'
 // @ts-ignore
 import type { ThemeTokens, ThemeOptions } from '#theme/types'
@@ -44,9 +45,9 @@ export interface ModulePrivateRuntimeConfig {
   optionsFilePaths?: Array<string>
 }
 
-export { generateTokens }
-
 type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]>; } : T;
+
+export { generateTokens, palette }
 
 export const defineTheme = (options: DeepPartial<NuxtThemeOptions>): DeepPartial<NuxtThemeOptions> => options
 

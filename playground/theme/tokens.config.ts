@@ -1,7 +1,10 @@
-import { defineThemeTokens } from '../../src'
+import { defineThemeTokens, palette } from '../../src'
+
+const primary = palette('#1C1D21')
 
 export default defineThemeTokens({
   colors: {
+    primary,
     black: {
       value: '#1C1D21'
     },
