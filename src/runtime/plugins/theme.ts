@@ -1,13 +1,14 @@
-import type { Ref } from 'vue'
 import { defineNuxtPlugin, useState, addRouteMiddleware } from '#imports'
 import type { ThemeOptions, ThemeTokens } from '#theme/types'
 
 export default defineNuxtPlugin(() => {
-  const theme = useState('nuxt-theme-kit-theme-options', () => ({}))
+  const theme = useState<ThemeOptions>('nuxt-theme-kit-theme-options', () => undefined)
 
   // Route middleware
   addRouteMiddleware(
     async () => {
+      if (theme.value) { return }
+
       theme.value = await $fetch('/api/_theme/options', {
         method: 'GET',
         responseType: 'json'
@@ -32,9 +33,3 @@ export default defineNuxtPlugin(() => {
     }
   }
 })
-
-declare module 'vue' {
-  interface ComponentCustomProperties {
-    $theme: Ref<ThemeOptions>
-  }
-}

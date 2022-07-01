@@ -2,15 +2,15 @@ import {
   defineNuxtModule,
   createResolver,
   resolveModule,
-  addTemplate,
   addPlugin,
   addAutoImport
 } from '@nuxt/kit'
 import { withTrailingSlash } from 'ufo'
 import type { ViteDevServer } from 'vite'
 import { defu } from 'defu'
+import type { Nitro } from 'nitropack'
 import { generateTokens } from './runtime/server/utils'
-import { logger, name, version, generateOptionsTyping, NuxtLayer, resolveTheme, motd, MODULE_DEFAULTS } from './utils'
+import { logger, name, version, generateOptionsTyping, NuxtLayer, resolveTheme, motd, MODULE_DEFAULTS, createThemeDir } from './utils'
 import type { NuxtThemeTokens, ModuleOptions } from './index'
 
 export default defineNuxtModule<ModuleOptions>({
@@ -23,7 +23,7 @@ export default defineNuxtModule<ModuleOptions>({
     }
   },
   defaults: MODULE_DEFAULTS,
-  async setup (options, nuxt) {
+  async setup (moduleOptions, nuxt) {
     // Private runtime config
     nuxt.options.runtimeConfig.theme = {
       tokensFilePaths: [],
@@ -37,19 +37,37 @@ export default defineNuxtModule<ModuleOptions>({
 
     // `.nuxt/theme` resolver
     const themeDir = withTrailingSlash(nuxt.options.buildDir + '/theme')
+
+    // Refresh theme function
+    const refreshTheme = async (nitro?: Nitro) => {
+      await createThemeDir(themeDir)
+
+      // Resolve theme configuration from every layer
+      const { optionsFilePaths, tokensFilePaths, tokens, options, metas } = resolveTheme(layers as NuxtLayer[])
+
+      if (moduleOptions.options) { privateConfig.optionsFilePaths = optionsFilePaths }
+      if (moduleOptions.tokens) { privateConfig.tokensFilePaths = tokensFilePaths }
+
+      if (moduleOptions.options) { await generateOptionsTyping(themeDir, options) }
+
+      if (nitro) {
+        await nitro.storage.setItem('cache:theme-kit:tokens.json', tokens)
+        await nitro.storage.setItem('cache:theme-kit:options.json', options)
+      }
+
+      return { options, optionsFilePaths, tokens, tokensFilePaths, metas }
+    }
+
+    // Set srcDir for external imports
+    globalThis.__nuxtThemeKitBuildDir__ = themeDir
+
+    // Theme dir resolver
     const { resolve: resolveThemeDir } = createResolver(themeDir)
     privateConfig.themeDir = themeDir
 
     // Initial theme resolving
-    const { tokens, metas } = resolveTheme(layers as NuxtLayer[])
+    const { tokens, metas } = await refreshTheme()
     privateConfig.metas = metas
-
-    // Create initial targets if tokens are enabled and directory does not exist
-    if (nuxt.options.dev) {
-      await generateTokens(tokens, themeDir, true, false)
-    } else {
-      nuxt.hook('build:before', async () => await generateTokens(tokens, themeDir, true, false))
-    }
 
     // `runtime/` resolver
     const { resolve: resolveRuntime } = createResolver(import.meta.url)
@@ -68,27 +86,8 @@ export default defineNuxtModule<ModuleOptions>({
     let buildTokens = async (_: any) => {}
 
     nuxt.hook('nitro:build:before', async (nitro) => {
-      const refreshTheme = async () => {
-        // Resolve theme configuration from every layer
-        const { optionsFilePaths, tokensFilePaths, tokens, options } = resolveTheme(layers as NuxtLayer[])
-
-        privateConfig.tokensFilePaths = tokensFilePaths
-        privateConfig.optionsFilePaths = optionsFilePaths
-
-        await nitro.storage.setItem('cache:theme-kit:tokens.json', tokens)
-        await nitro.storage.setItem('cache:theme-kit:options.json', options)
-
-        return { optionsFilePaths, tokensFilePaths, tokens, options }
-      }
-
       // Grab options on init
-      const { options } = await refreshTheme()
-
-      // Add options typings to theme build directory
-      addTemplate({
-        filename: 'theme/options.d.ts',
-        getContents: () => generateOptionsTyping(options)
-      })
+      await refreshTheme(nitro)
 
       // Print console messages
       motd(privateConfig.metas)
@@ -97,57 +96,28 @@ export default defineNuxtModule<ModuleOptions>({
       await buildTokens(nitro)
     })
 
-    // Development reload
-    if (nuxt.options.dev) {
-      const hasTokens = !!options.tokens
-      const hasOptions = !!options.options
+    /**
+     * Options features
+     */
 
-      nuxt.hook('nitro:init', (nitro) => {
-        nuxt.hook('vite:serverCreated', (viteServer: ViteDevServer) => {
-          nuxt.hook('builder:watch', async (_, path) => {
-            const isTokenFile = hasTokens ? privateConfig.tokensFilePaths.some(tokensFilePath => tokensFilePath.includes(path.replace('.js', '')) || tokensFilePath.includes(path.replace('.ts', ''))) : false
-            const isOptionsFile = hasOptions ? privateConfig.optionsFilePaths.some(optionsFilePath => optionsFilePath.includes(path.replace('.js', '')) || optionsFilePath.includes(path.replace('.ts', ''))) : false
+    if (moduleOptions.options) {
+      // Push options handlers
+      nuxt.hook('nitro:config', (nitroConfig) => {
+        nitroConfig.handlers = nitroConfig.handlers || []
 
-            if (isTokenFile || isOptionsFile) {
-              const { tokens, options, tokensFilePaths, optionsFilePaths } = resolveTheme(layers as NuxtLayer[])
-
-              privateConfig.tokensFilePaths = hasTokens ? tokensFilePaths : []
-              privateConfig.optionsFilePaths = hasOptions ? optionsFilePaths : []
-
-              await nitro.storage.setItem('cache:theme-kit:tokens.json', hasTokens ? tokens || {} : {})
-              await nitro.storage.setItem('cache:theme-kit:options.json', hasOptions ? options || {} : {})
-
-              viteServer.ws.send({
-                type: 'custom',
-                event: 'nuxt-theme-kit:update',
-                data: {
-                  tokens: hasTokens ? tokens : {},
-                  options: hasOptions ? options : {}
-                }
-              })
-
-              if (hasTokens) { await buildTokens(nitro) }
-            }
-          })
+        nitroConfig.handlers.push({
+          method: 'all',
+          route: '/api/_theme/options',
+          handler: resolveRuntimeModule('./server/api/options')
         })
       })
     }
 
-    // Push options handlers
-    nuxt.hook('nitro:config', (nitroConfig) => {
-      nitroConfig.handlers = nitroConfig.handlers || []
+    /**
+     * Design Tokens feature
+     */
 
-      nitroConfig.handlers.push({
-        method: 'all',
-        route: '/api/_theme/options',
-        handler: resolveRuntimeModule('./server/api/options')
-      })
-
-      nitroConfig.alias['#theme/server'] = resolveRuntime('./runtime/server/utils')
-    })
-
-    // Enable design tokens feature
-    if (options.tokens) {
+    if (moduleOptions.tokens) {
       // Set buildTokens to real function as the feature is enabled
       buildTokens = async (nitro) => {
         try {
@@ -166,8 +136,8 @@ export default defineNuxtModule<ModuleOptions>({
 
       // Apply aliases
       nuxt.options.alias = nuxt.options.alias || {}
-      nuxt.options.alias['#theme/client'] = resolveThemeDir('./tokens')
-      nuxt.options.alias['#theme/types'] = resolveThemeDir('./tokens-types')
+      nuxt.options.alias['#theme'] = resolveThemeDir('./index')
+      nuxt.options.alias['#theme/types'] = resolveThemeDir('./index.d.ts')
 
       // Inject CSS
       nuxt.options.css = nuxt.options.css || []
@@ -175,7 +145,7 @@ export default defineNuxtModule<ModuleOptions>({
 
       // Inject typings
       nuxt.hook('prepare:types', (opts) => {
-        opts.references.push({ path: resolveThemeDir('./theme.d.ts') })
+        opts.references.push({ path: resolveThemeDir('./index.d.ts') })
       })
 
       // Push handlers
@@ -194,14 +164,18 @@ export default defineNuxtModule<ModuleOptions>({
           handler: resolveRuntimeModule('./server/api/tokens/index')
         })
 
+        // Pre-render
         nitroConfig.prerender = nitroConfig.prerender || {}
         nitroConfig.prerender.routes = nitroConfig.prerender.routes || []
         nitroConfig.prerender.routes.push('/api/_theme/tokens')
         nitroConfig.prerender.routes.push('/api/_theme/options')
+
+        // Bundled storage
         nitroConfig.bundledStorage = nitroConfig.bundledStorage || []
         nitroConfig.bundledStorage.push('/cache/theme-kit')
         nitroConfig.bundledStorage.push('/theme')
 
+        // Inlined dependencies
         nitroConfig.externals = defu(typeof nitroConfig.externals === 'object' ? nitroConfig.externals : {}, {
           inline: [
             'lodash',
@@ -212,6 +186,9 @@ export default defineNuxtModule<ModuleOptions>({
             resolveRuntime()
           ]
         })
+
+        // Aliases
+        nitroConfig.alias['#theme-tokens'] = resolveRuntime('./runtime/server/utils')
       })
 
       /**
@@ -235,6 +212,45 @@ export default defineNuxtModule<ModuleOptions>({
         name: 'useTheme',
         as: 'useTheme'
       })
+    }
+
+    /**
+     * Build environments
+     */
+
+    if (nuxt.options.dev) {
+      // Development builds
+
+      // Create initial build targets for tokens
+      await generateTokens(tokens, themeDir, true)
+
+      nuxt.hook('nitro:init', (nitro) => {
+        nuxt.hook('vite:serverCreated', (viteServer: ViteDevServer) => {
+          nuxt.hook('builder:watch', async (_, path) => {
+            const isTokenFile = moduleOptions.tokens ? privateConfig.tokensFilePaths.some(tokensFilePath => tokensFilePath.includes(path.replace('.js', '')) || tokensFilePath.includes(path.replace('.ts', ''))) : false
+            const isOptionsFile = moduleOptions.meta ? privateConfig.optionsFilePaths.some(optionsFilePath => optionsFilePath.includes(path.replace('.js', '')) || optionsFilePath.includes(path.replace('.ts', ''))) : false
+
+            if (isTokenFile || isOptionsFile) {
+              const { tokens, options } = await refreshTheme(nitro)
+
+              viteServer.ws.send({
+                type: 'custom',
+                event: 'nuxt-theme-kit:update',
+                data: {
+                  options: moduleOptions.options ? options : {},
+                  tokens: moduleOptions.tokens ? tokens : {}
+                }
+              })
+
+              if (moduleOptions.tokens) { await buildTokens(nitro) }
+            }
+          })
+        })
+      })
+    } else {
+      // Production builds
+
+      nuxt.hook('build:before', async () => await generateTokens(tokens, themeDir, true))
     }
   }
 })

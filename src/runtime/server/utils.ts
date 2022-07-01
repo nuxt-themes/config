@@ -1,6 +1,7 @@
 import type { Core as Instance } from 'browser-style-dictionary/types/browser'
 import StyleDictionary from 'browser-style-dictionary/browser.js'
 import type { NuxtThemeTokens } from '../../index'
+import { objectPaths } from '../../utils'
 
 const DesignTokenType =
 `interface DesignToken {
@@ -23,11 +24,9 @@ const DesignTokenType =
 }`
 
 const DesignTokensType =
-`
-export interface DesignTokens {
+`interface DesignTokens {
   [key: string]: DesignTokens | DesignToken;
-}
-`
+}`
 
 const treeWalker = (obj, typing: boolean = true) => {
   let type = Object.create(null)
@@ -57,8 +56,7 @@ const treeWalker = (obj, typing: boolean = true) => {
 export const generateTokens = async (
   tokens: NuxtThemeTokens,
   buildPath: string,
-  silent = true,
-  force: boolean = true
+  silent = true
 ) => {
   let styleDictionary: Instance = StyleDictionary
 
@@ -72,34 +70,19 @@ export const generateTokens = async (
   styleDictionary.registerFormat({
     name: 'typescript/css-variables-declaration',
     formatter ({ dictionary }) {
+      const tokensObject = treeWalker(dictionary.tokens)
+
       let result = 'import type { Ref } from \'vue\'\n\n'
 
       result = result + `export ${DesignTokensType}\n\n`
 
-      result = result + 'export * from \'./options.d\'\n\n'
-
       result = result + `export ${DesignTokenType}\n\n`
 
-      result = result + `export interface ThemeTokens extends DesignTokens ${JSON.stringify(treeWalker(dictionary.tokens), null, 2)}\n\n`
+      result = result + `export interface ThemeTokens extends DesignTokens ${JSON.stringify(tokensObject, null, 2)}\n\n`
 
-      const tokenPaths = dictionary.allTokens.map(token => `'${token.name.replace(/-/g, '.').toLowerCase()}'`)
+      const tokensPaths = objectPaths(tokensObject)
 
-      result = result + `export type TokenPaths = ${tokenPaths.join(' | \n')}\n\n`
-
-      result = result +
-`declare module '@vue/runtime-core' {
-  interface ComponentCustomProperties {
-    $t: (path: Ref<TokenPaths> | TokenPaths) => string
-    $tokens: (path: Ref<TokenPaths> | TokenPaths) => string
-  }
-}\n\n`
-
-      result = result +
-`declare module '@nuxt/schema' {
-  interface NuxtConfig {
-    theme: Partial<NuxtThemeConfig>
-  }
-}\n\n`
+      result = result + `export type TokensPaths = ${tokensPaths.map(path => (`'${path}'`)).join(' | \n')}\n\n`
 
       result = result.replace(/"DesignToken"/g, 'DesignToken')
 
@@ -112,15 +95,44 @@ export const generateTokens = async (
     formatter ({ dictionary }) {
       let result = 'import get from \'lodash.get\'\n\n'
 
-      result = result + 'import type { ThemeTokens, TokenPaths } from \'./tokens-types\'\n\n'
+      result = result + 'import type { ThemeTokens, TokensPaths, DesignToken } from \'./tokens-types.d\'\n\n'
 
-      result = result + 'export * from \'./tokens-types\'\n\n'
+      result = result + 'export * from \'./tokens-types.d\'\n\n'
 
-      result = result + `export const themeTokens: ThemeTokens = ${JSON.stringify(treeWalker(dictionary.tokens, false), null, 2)}\n\n`
+      result = result + `export const themeTokens: ThemeTokens = ${JSON.stringify(treeWalker(dictionary.tokens, false), null, 2)}\n`
 
-      result = result + 'export const $tokens = (path: TokenPaths) => get(themeTokens, path)\n\n'
+      result = result + `\n
+/**
+ * Get a theme token by its path
+ */
+export const $tokens = (path: TokensPaths, key: keyof DesignToken = 'variable', flatten: boolean = true) => {
+  const token = get(themeTokens, path)
 
-      result = result + 'export const $t = $tokens\n\n'
+  if (key && token?.[key]) { return token[key] }
+
+  if (key && flatten && typeof token === 'object') {
+    const flattened = {}
+    
+    const flatten = (obj) => {
+      Object.entries(obj).forEach(([objectKey, value]) => {
+        if (value[key]) {
+          flattened[objectKey] = value[key]
+          return
+        }
+
+        flatten(value)
+      })
+    }
+
+    flatten(token)
+
+    return flattened
+  }
+
+  return token
+}\n\n`
+
+      result = result + 'export const $dt = $tokens\n\n'
 
       return result
     }
@@ -137,14 +149,40 @@ export const generateTokens = async (
 `\n
 /**
  * Get a theme token by its path
- * @typedef {import('token-types').TokenPaths} TokenPaths
- * @param {TokenPaths} path
+ * @typedef {import('tokens-types').TokenPaths} TokenPaths
+ * @typedef {import('tokens-types').DesignToken} DesignToken
+ * @param {TokenPaths} path The path to the theme token
+ * @param {keyof DesignToken} variable Returns the variable if exists if true
+ * @param {boolean} flatten If the path gives an object, returns a deeply flattened object with "key" used as values.
  */
-export const $tokens = (path) => get(themeTokens, path)\n\n`
+export const $tokens = (path, key = 'variable', flatten: boolean = true) => {
+  const token = get(themeTokens, path)
 
-      result = result + 'export const $t = $tokens\n\n'
+  if (key && token?.[key]) { return token[key] }
 
-      result = result + 'export default { $t, $tokens, themeTokens }'
+  if (key && flatten && typeof token === 'object') {
+    const flattened = {}
+    
+    const flatten = (obj) => {
+      Object.entries(obj).forEach(([objectKey, value]) => {
+        if (value[key]) {
+          flattened[objectKey] = value[key]
+          return
+        }
+
+        flatten(value)
+      })
+    }
+
+    flatten(token)
+
+    return flattened
+  }
+
+  return token
+}\n\n`
+
+      result = result + 'export const $to = $tokens\n\n'
 
       return result
     }
@@ -223,20 +261,18 @@ export const $tokens = (path) => get(themeTokens, path)\n\n`
     console.log = () => {}
   }
 
-  // @ts-ignore
-  if (process?.dev && force) { styleDictionary.cleanAllPlatforms() }
+  styleDictionary.cleanAllPlatforms()
+
+  await new Promise(resolve => setTimeout(resolve, 10))
 
   styleDictionary.buildAllPlatforms()
 
-  await new Promise(resolve => setTimeout(resolve, 100))
+  await new Promise(resolve => setTimeout(resolve, 10))
 
   // Weird trick to disable nasty logging
   if (silent) {
     // @ts-ignore
     // eslint-disable-next-line no-console
     console.log = console._log
-    // @ts-ignore
-    // eslint-disable-next-line no-console
-    delete console._log
   }
 }

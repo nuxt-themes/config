@@ -20,7 +20,9 @@ export default (color: string): DesignTokens => {
       )
     )
 
-    colorRange[500] = baseColor
+    colorRange[500] = {
+      value: baseColor
+    }
 
     return colorRange
   }

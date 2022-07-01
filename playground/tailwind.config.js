@@ -1,23 +1,29 @@
-import { $t } from './.nuxt/theme/tokens.js'
+import { $dt } from '../src/index'
 
 export default {
   theme: {
     extend: {
       colors: {
+        primary: $dt('colors'),
+
         black: {
-          DEFAULT: $t('colors.black')?.variable
+          DEFAULT: $dt('colors.black')
         },
+
         grape: {
-          DEFAULT: $t('colors.grape')?.variable
+          DEFAULT: $dt('colors.grape')
         },
+
         lila: {
-          DEFAULT: $t('colors.lila')?.variable
+          DEFAULT: $dt('colors.lila')
         },
+
         grey: {
-          DEFAULT: $t('colors.grey')?.variable
+          DEFAULT: $dt('colors.grey')
         },
+
         lavender: {
-          DEFAULT: $t('colors.lavender')?.variable
+          DEFAULT: $dt('colors.lavender')
         }
       }
     }

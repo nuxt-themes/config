@@ -10,9 +10,11 @@ export default defineBuildConfig({
     }
   ],
   externals: [
-    '#theme/types',
+    '#theme',
+    '#theme-tokens',
     'browser-style-dictionary',
     'ufo',
+    'jiti',
     'pathe',
     'defu',
     'chalk',

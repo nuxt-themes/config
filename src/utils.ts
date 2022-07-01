@@ -1,3 +1,5 @@
+import { mkdir, writeFile } from 'fs/promises'
+import { existsSync } from 'fs'
 import { createDefu, defu } from 'defu'
 import { resolve } from 'pathe'
 import { generateTypes, resolveSchema } from 'untyped'
@@ -118,7 +120,110 @@ export const resolveTheme = (layers: NuxtLayer[]) => {
   return { optionsFilePaths, tokensFilePaths, metas, tokens, options }
 }
 
+export const createThemeDir = async (path: string) => {
+  if (!existsSync(path)) { await mkdir(path, { recursive: true }) }
+}
+
+/**
+ * Make a list of `get()` compatible paths for any object
+ */
+export const objectPaths = (data: any) => {
+  const output: any = []
+  function step (obj: any, prev?: string) {
+    Object.keys(obj).forEach((key) => {
+      const value = obj[key]
+      const isarray = Array.isArray(value)
+      const type = Object.prototype.toString.call(value)
+      const isobject =
+        type === '[object Object]' ||
+        type === '[object Array]'
+
+      const newKey = prev
+        ? `${prev}.${key}`
+        : key
+
+      if (!output.includes(newKey)) { output.push(newKey) }
+
+      if (!isarray && isobject && Object.keys(value).length) { return step(value, newKey) }
+    })
+  }
+  step(data)
+  return output
+}
+
 /**
  * Generate a typing declaration from the theme configuration.
  */
-export const generateOptionsTyping = (options: Partial<NuxtThemeOptions>) => `${generateTypes(resolveSchema(options), { addDefaults: true, allowExtraKeys: true, interfaceName: 'ThemeOptions' })}\n\n`
+export const generateOptionsTyping = async (path: string, options: Partial<NuxtThemeOptions> = {}) => {
+  let optionsType = generateTypes(resolveSchema(options), { addDefaults: true, allowExtraKeys: true, interfaceName: 'ThemeOptions' }) + '\n\n'
+
+  optionsType = optionsType + `export type OptionsPaths = ${objectPaths(options).map(path => (`'${path}'`)).join(' | \n')}\n\n`
+
+  await writeFile(path + 'options-types.d.ts', optionsType)
+
+  let optionsTs = 'import { OptionsPaths, ThemeOptions } from \'./options-types\'\n\n'
+
+  optionsTs = optionsTs + 'import get from \'lodash.get\'\n\n'
+
+  optionsTs = optionsTs + `export const themeOptions: ThemeOptions = ${JSON.stringify(options, null, 2)}\n\n`
+
+  optionsTs = optionsTs + 'export const $theme = (path: OptionsPaths) => get(themeOptions, path)\n\n'
+
+  optionsTs = optionsTs + 'export * from \'./options-types.d\'\n'
+
+  await writeFile(path + 'options.ts', optionsTs)
+
+  let optionsJs = 'import get from \'lodash.get\'\n\n'
+
+  optionsJs = optionsJs + `export const options = ${JSON.stringify(options, null, 2)}\n\n`
+
+  optionsJs = optionsJs +
+`/**
+ * @typedef {import('options-types').OptionsPaths} OptionsPaths
+ * @param {OptionsPaths} path
+ */
+export const $theme = (path) => get(options, path)\n\n`
+
+  optionsJs = optionsJs + 'export default { options, $theme }\n'
+
+  await writeFile(path + 'options.js', optionsJs)
+
+  const indexTs = 'export * from \'./tokens.ts\'\n\nexport * from \'./options.ts\'\n'
+
+  await writeFile(path + 'index.ts', indexTs)
+
+  let indexDTs = 'import type { Ref } from \'vue\'\n\n'
+
+  indexDTs = indexDTs + 'import { TokensPaths, ThemeTokens } from \'./tokens-types.d\'\n\n'
+
+  indexDTs = indexDTs + 'import type { OptionsPaths, ThemeOptions } from \'./options-types.d\'\n\n'
+
+  indexDTs = indexDTs + 'export * from \'./tokens-types.d\'\n\nexport * from \'./options-types.d\'\n\n'
+
+  indexDTs = indexDTs +
+`declare module '@vue/runtime-core' {
+  interface ComponentCustomProperties {
+    $dt: (path: Ref<TokensPaths> | TokensPaths, key: string = 'variable') => string
+    $tokens: (path: Ref<TokensPaths> | TokensPaths, key: string = 'variable') => string
+    $to: (path: Ref<OptionsPaths> | OptionsPaths) => any
+    $theme: Ref<ThemeOptions>
+  }
+}
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $dt: (path: Ref<TokensPaths> | TokensPaths, key: string = 'variable') => string
+    $tokens: (path: Ref<TokensPaths> | TokensPaths, key: string = 'variable') => string
+    $to: (path: Ref<OptionsPaths> | OptionsPaths) => any
+    $theme: Ref<ThemeOptions>
+  }
+}
+
+declare module '@nuxt/schema' {
+  interface NuxtConfig {
+    theme?: Partial<NuxtThemeConfig>
+  }
+}\n`
+
+  await writeFile(path + 'index.d.ts', indexDTs)
+}

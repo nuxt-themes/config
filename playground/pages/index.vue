@@ -11,7 +11,10 @@
     <div
       class="flex-1 rounded-lg relative z-0 p-8 overflow-y-auto"
     >
-      <p class="flex items-center justify-center w-64 h-64 bg-black rounded-xl rounded-lg ring-4 ring-black">
+      <p class="flex items-center justify-center w-64 h-64 bg-primary-500 rounded-xl rounded-lg ring-4 ring-black">
+        Primary
+      </p>
+      <p class="flex items-center justify-center w-64 h-64 bg-black rounded-xl mt-8 rounded-lg ring-4 ring-black">
         Black
       </p>
       <p class="flex items-center justify-center w-64 h-64 bg-grape rounded-xl mt-8 rounded-lg ring-4 ring-black">

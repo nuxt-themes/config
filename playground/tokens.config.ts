@@ -6,4 +6,6 @@ import { defineThemeTokens } from '../src'
  */
 
 export default defineThemeTokens({
+  colors: {
+  }
 })
