@@ -1,5 +1,5 @@
 import chroma, { Color } from 'chroma-js'
-
+// @ts-ignore
 import type { DesignTokens } from '#theme/types'
 
 export default (color: string): DesignTokens => {
