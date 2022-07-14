@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 const theme = useTheme()
+// eslint-disable-next-line no-console
 console.log(theme.value)
 </script>
 
