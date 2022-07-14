@@ -7,7 +7,7 @@ import localModule from '../../src/module'
 // const resolveThemeDir = (path: string) => resolve(themeDir, path)
 
 export default defineNuxtConfig({
-  modules: [localModule, '@nuxtjs/tailwindcss'],
+  modules: [localModule, '@nuxtjs/design-tokens/module', '@nuxtjs/tailwindcss'],
   theme: {
     meta: {
       name: 'Playground Theme',

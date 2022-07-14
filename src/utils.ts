@@ -183,9 +183,9 @@ declare module '@nuxt/schema' {
 
   indexTs = indexTs + 'import get from \'lodash.get\'\n\n'
 
-  indexTs = indexTs + `export const themeOptions: ThemeOptions = ${JSON.stringify(options, null, 2)}\n\n`
+  indexTs = indexTs + `export const options: ThemeOptions = ${JSON.stringify(options, null, 2)}\n\n`
 
-  indexTs = indexTs + 'export const $theme = (path: OptionsPaths) => get(themeOptions, path)\n\n'
+  indexTs = indexTs + 'export const $theme = (path: OptionsPaths) => get(options, path)\n\n'
 
   indexTs = indexTs + 'export * from \'./options-types.d\'\n'
 

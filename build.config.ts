@@ -11,7 +11,6 @@ export default defineBuildConfig({
   ],
   externals: [
     '#theme',
-    'browser-style-dictionary',
     'ufo',
     'jiti',
     'pathe',

@@ -3,8 +3,7 @@ import {
   createResolver,
   resolveModule,
   addPlugin,
-  addAutoImport,
-  installModule
+  addAutoImport
 } from '@nuxt/kit'
 import { withTrailingSlash } from 'ufo'
 import type { ViteDevServer } from 'vite'
@@ -24,20 +23,20 @@ export default defineNuxtModule<ModuleOptions>({
   },
   defaults: MODULE_DEFAULTS,
   async setup (moduleOptions, nuxt) {
-    await installModule('@nuxtjs/design-tokens/module')
-
-    // Private runtime config
-    nuxt.options.runtimeConfig.theme = {
-      optionsFilePaths: []
-    }
-
     // Nuxt `extends` key layers
     const layers = nuxt.options._layers
 
-    const privateConfig = nuxt.options.runtimeConfig.theme
-
     // `.nuxt/theme` resolver
     const themeDir = withTrailingSlash(nuxt.options.buildDir + '/theme')
+
+    // Private runtime config
+    nuxt.options.runtimeConfig.theme = {
+      optionsFilePaths: [],
+      metas: [],
+      themeDir
+    }
+
+    const privateConfig = nuxt.options.runtimeConfig.theme
 
     // Refresh theme function
     const refreshTheme = async (nitro?: Nitro) => {
@@ -105,8 +104,6 @@ export default defineNuxtModule<ModuleOptions>({
         })
       })
     }
-
-    nuxt.options.build.transpile.push('browser-style-dictionary/browser.js')
 
     // Apply aliases
     nuxt.options.alias = nuxt.options.alias || {}
