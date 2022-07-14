@@ -43,7 +43,7 @@
     "prepare": "yarn dev:prepare"
   },
   "dependencies": {
-    "@nuxt/kit": "^3.0.0-rc.4",
+    "@nuxt/kit": "^3.0.0-rc.5",
     "@types/lodash.get": "^4.4.7",
     "lodash.get": "^4.4.2",
     "untyped": "^0.4.4"
@@ -51,7 +51,7 @@
   "devDependencies": {
     "@nuxt-themes/docus": "npm:@nuxt-themes/docus-edge@latest",
     "@nuxt/module-builder": "^0.1.7",
-    "@nuxt/schema": "^3.0.0-rc.4",
+    "@nuxt/schema": "^3.0.0-rc.5",
     "@nuxt/test-utils": "npm:@nuxt/test-utils-edge@latest",
     "@nuxtjs/eslint-config-typescript": "latest",
     "@nuxtjs/tailwindcss": "npm:@nuxtjs/tailwindcss-edge@latest",
