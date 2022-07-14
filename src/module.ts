@@ -111,7 +111,7 @@ export default defineNuxtModule<ModuleOptions>({
     // Apply aliases
     nuxt.options.alias = nuxt.options.alias || {}
     nuxt.options.alias['#theme'] = resolveThemeDir('./index')
-    nuxt.options.alias['#theme/types'] = resolveThemeDir('./index.d.ts')
+    nuxt.options.alias['#theme/types'] = resolveThemeDir('./index.d')
 
     // Inject typings
     nuxt.hook('prepare:types', (opts) => {
