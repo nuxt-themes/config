@@ -12,7 +12,7 @@ export default defineNuxtConfig({
     meta: {
       name: 'Playground Theme',
       description: 'Just a basic Playground Theme',
-      url: 'https://nuxt-theme-kit.netlify.app',
+      url: 'https://nuxt-themes.netlify.app',
       author: 'NuxtLabs',
       motd: true
     }

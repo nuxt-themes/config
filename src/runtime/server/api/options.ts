@@ -9,10 +9,10 @@ export default defineEventHandler(async (event) => {
     try {
       const { options } = await useBody(event)
       if (options) {
-        await storage.setItem('cache:theme-kit:options.json', options)
+        await storage.setItem('cache:theme:options.json', options)
       }
     } catch (_) {}
   }
 
-  return await storage.getItem('cache:theme-kit:options.json')
+  return await storage.getItem('cache:theme:options.json')
 })

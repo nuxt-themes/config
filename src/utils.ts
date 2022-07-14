@@ -1,12 +1,12 @@
 import { mkdir, writeFile } from 'fs/promises'
 import { existsSync } from 'fs'
-import { createDefu, defu } from 'defu'
+import { createDefu } from 'defu'
 import { resolve } from 'pathe'
 import { generateTypes, resolveSchema } from 'untyped'
 import chalk from 'chalk'
 import { requireModule, useLogger } from '@nuxt/kit'
 import { name, version } from '../package.json'
-import type { NuxtThemeOptions, NuxtThemeTokens, NuxtThemeMeta, ModuleOptions } from './index'
+import type { NuxtThemeOptions, NuxtThemeMeta, ModuleOptions } from './index'
 
 export interface NuxtLayer {
   config: any
@@ -22,8 +22,7 @@ export const MODULE_DEFAULTS: ModuleOptions = {
     author: '',
     motd: true
   },
-  options: true,
-  tokens: true
+  options: true
 }
 
 // Logging
@@ -68,8 +67,8 @@ export const resolveConfig = (layer: NuxtLayer, key: string, configFile = `${key
 
   if (filePath) {
     try {
-      const _tokensFile = requireModule(filePath, { clearCache: true })
-      if (_tokensFile) { config = _tokensFile }
+      const _file = requireModule(filePath, { clearCache: true })
+      if (_file) { config = _file }
     } catch (_) {}
   }
 
@@ -80,10 +79,8 @@ export const resolveConfig = (layer: NuxtLayer, key: string, configFile = `${key
  * Resolve `theme` config layers from `extends` layers and merge them via `Object.assign()`.
  */
 export const resolveTheme = (layers: NuxtLayer[]) => {
-  const tokensFilePaths: string[] = []
   const optionsFilePaths: string[] = []
   const metas: NuxtThemeMeta[] = []
-  let tokens = {} as NuxtThemeTokens
   let options = {} as NuxtThemeOptions
 
   const splitLayer = (layer: NuxtLayer) => {
@@ -103,21 +100,11 @@ export const resolveTheme = (layers: NuxtLayer[]) => {
 
       options = optionsMerger(options, layerOptions)
     }
-
-    // Deeply merge tokens
-    // In opposition to defaults, here arrays should also be merged.
-    if (layer.config?.theme?.tokens || MODULE_DEFAULTS.tokens) {
-      const { config: layerTokens, filePath: _layerTokensFilePath } = resolveConfig(layer, 'tokens', 'tokens.config')
-
-      if (_layerTokensFilePath) { tokensFilePaths.push(_layerTokensFilePath) }
-
-      tokens = defu(tokens, layerTokens)
-    }
   }
 
   for (const layer of layers) { splitLayer(layer) }
 
-  return { optionsFilePaths, tokensFilePaths, metas, tokens, options }
+  return { optionsFilePaths, metas, options }
 }
 
 export const createThemeDir = async (path: string) => {
@@ -155,56 +142,19 @@ export const objectPaths = (data: any) => {
  * Generate a typing declaration from the theme configuration.
  */
 export const generateOptionsTyping = async (path: string, options: Partial<NuxtThemeOptions> = {}) => {
-  let optionsType = generateTypes(resolveSchema(options), { addDefaults: true, allowExtraKeys: true, interfaceName: 'ThemeOptions' }) + '\n\n'
+  /**
+   * types.d.ts
+   */
 
-  optionsType = optionsType + `export type OptionsPaths = ${objectPaths(options).map(path => (`'${path}'`)).join(' | \n')}\n\n`
+  let typesTs = 'import type { Ref } from \'vue\'\n\n'
 
-  await writeFile(path + 'options-types.d.ts', optionsType)
+  typesTs = typesTs + generateTypes(resolveSchema(options), { addDefaults: true, allowExtraKeys: true, interfaceName: 'ThemeOptions' }) + '\n\n'
 
-  let optionsTs = 'import { OptionsPaths, ThemeOptions } from \'./options-types\'\n\n'
+  typesTs = typesTs + `export type OptionsPaths = ${objectPaths(options).map(path => (`'${path}'`)).join(' | \n')}\n\n`
 
-  optionsTs = optionsTs + 'import get from \'lodash.get\'\n\n'
-
-  optionsTs = optionsTs + `export const themeOptions: ThemeOptions = ${JSON.stringify(options, null, 2)}\n\n`
-
-  optionsTs = optionsTs + 'export const $theme = (path: OptionsPaths) => get(themeOptions, path)\n\n'
-
-  optionsTs = optionsTs + 'export * from \'./options-types.d\'\n'
-
-  await writeFile(path + 'options.ts', optionsTs)
-
-  let optionsJs = 'import get from \'lodash.get\'\n\n'
-
-  optionsJs = optionsJs + `export const options = ${JSON.stringify(options, null, 2)}\n\n`
-
-  optionsJs = optionsJs +
-`/**
- * @typedef {import('options-types').OptionsPaths} OptionsPaths
- * @param {OptionsPaths} path
- */
-export const $theme = (path) => get(options, path)\n\n`
-
-  optionsJs = optionsJs + 'export default { options, $theme }\n'
-
-  await writeFile(path + 'options.js', optionsJs)
-
-  const indexTs = 'export * from \'./tokens.ts\'\n\nexport * from \'./options.ts\'\n'
-
-  await writeFile(path + 'index.ts', indexTs)
-
-  let indexDTs = 'import type { Ref } from \'vue\'\n\n'
-
-  indexDTs = indexDTs + 'import { TokensPaths, ThemeTokens } from \'./tokens-types.d\'\n\n'
-
-  indexDTs = indexDTs + 'import type { OptionsPaths, ThemeOptions } from \'./options-types.d\'\n\n'
-
-  indexDTs = indexDTs + 'export * from \'./tokens-types.d\'\n\nexport * from \'./options-types.d\'\n\n'
-
-  indexDTs = indexDTs +
+  typesTs = typesTs +
 `declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
-    $dt: (path: Ref<TokensPaths> | TokensPaths, key: string = 'variable') => string
-    $tokens: (path: Ref<TokensPaths> | TokensPaths, key: string = 'variable') => string
     $to: (path: Ref<OptionsPaths> | OptionsPaths) => any
     $theme: Ref<ThemeOptions>
   }
@@ -212,8 +162,6 @@ export const $theme = (path) => get(options, path)\n\n`
 
 declare module 'vue' {
   interface ComponentCustomProperties {
-    $dt: (path: Ref<TokensPaths> | TokensPaths, key: string = 'variable') => string
-    $tokens: (path: Ref<TokensPaths> | TokensPaths, key: string = 'variable') => string
     $to: (path: Ref<OptionsPaths> | OptionsPaths) => any
     $theme: Ref<ThemeOptions>
   }
@@ -225,5 +173,40 @@ declare module '@nuxt/schema' {
   }
 }\n`
 
-  await writeFile(path + 'index.d.ts', indexDTs)
+  await writeFile(path + 'types.d.ts', typesTs)
+
+  /**
+   * index.ts
+   */
+
+  let indexTs = 'import { OptionsPaths, ThemeOptions } from \'./types\'\n\n'
+
+  indexTs = indexTs + 'import get from \'lodash.get\'\n\n'
+
+  indexTs = indexTs + `export const themeOptions: ThemeOptions = ${JSON.stringify(options, null, 2)}\n\n`
+
+  indexTs = indexTs + 'export const $theme = (path: OptionsPaths) => get(themeOptions, path)\n\n'
+
+  indexTs = indexTs + 'export * from \'./options-types.d\'\n'
+
+  await writeFile(path + 'index.ts', indexTs)
+
+  /**
+   * index.js
+   */
+
+  let indexJs = 'import get from \'lodash.get\'\n\n'
+
+  indexJs = indexJs + `export const options = ${JSON.stringify(options, null, 2)}\n\n`
+
+  indexJs = indexJs +
+`/**
+ * @typedef {import('options-types').OptionsPaths} OptionsPaths
+ * @param {OptionsPaths} path
+ */
+export const $theme = (path) => get(options, path)\n\n`
+
+  indexJs = indexJs + 'export default { options, $theme }\n'
+
+  await writeFile(path + 'index.js', indexJs)
 }

@@ -1,8 +1,8 @@
 import { defineNuxtPlugin, useState, addRouteMiddleware } from '#imports'
-import type { ThemeOptions, ThemeTokens } from '#theme/types'
+import type { ThemeOptions } from '#theme/types'
 
 export default defineNuxtPlugin(() => {
-  const theme = useState<ThemeOptions>('nuxt-theme-kit-theme-options', () => undefined)
+  const theme = useState<ThemeOptions>('nuxt-theme-config-theme-options', () => undefined)
 
   // Route middleware
   addRouteMiddleware(
@@ -20,8 +20,8 @@ export default defineNuxtPlugin(() => {
   if (import.meta.hot) {
     // @ts-ignore
     import.meta.hot.on(
-      'nuxt-theme-kit:update' as any,
-      ({ options }: { options: ThemeOptions, tokens: ThemeTokens}) => {
+      'theme:options:update' as any,
+      ({ options }: { options: ThemeOptions }) => {
         theme.value = options
       }
     )

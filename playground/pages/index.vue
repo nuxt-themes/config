@@ -38,6 +38,11 @@
   </div>
 </template>
 
+<script setup lang="ts">
+const theme = useTheme()
+console.log(theme.value)
+</script>
+
 <style scoped lang="postcss">
 .app {
   height: 100vh;

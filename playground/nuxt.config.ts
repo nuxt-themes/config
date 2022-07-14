@@ -11,7 +11,7 @@ export default defineNuxtConfig({
   },
 
   alias: {
-    'nuxt-theme-kit': resolveThemeDir('../src/module.ts')
+    '@nuxt-themes/config': resolveThemeDir('../src/module.ts')
   },
 
   extends: [resolveThemeDir('./theme')],
