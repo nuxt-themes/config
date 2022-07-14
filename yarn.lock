@@ -744,6 +744,18 @@
     lodash.template "^4.5.0"
     pathe "^0.3.0"
 
+"@nuxtjs/design-tokens@npm:@nuxtjs/design-tokens-edge@latest":
+  version "0.0.1-27629382.234d112"
+  resolved "https://registry.yarnpkg.com/@nuxtjs/design-tokens-edge/-/design-tokens-edge-0.0.1-27629382.234d112.tgz#5b435ce0a65da9115faaba2b1cf3c2f819c4486e"
+  integrity sha512-0utvmCz0DexJtOeN51jv9zbNjY2eQLJJBuRaax5jh43avA/V51vYS7/4DlIBa3bumup66Nn9Y/H9ASQ5kI7ZTA==
+  dependencies:
+    "@nuxt/kit" "^3.0.0-rc.5"
+    "@types/lodash.get" "^4.4.7"
+    browser-style-dictionary "^3.1.1-browser.1"
+    chroma-js "^2.4.2"
+    lodash.get "^4.4.2"
+    untyped "^0.4.4"
+
 "@nuxtjs/eslint-config-typescript@latest":
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/@nuxtjs/eslint-config-typescript/-/eslint-config-typescript-10.0.0.tgz#08eab1c450b34d4da88b81ede81b549318e4b2d6"

@@ -3,7 +3,8 @@ import {
   createResolver,
   resolveModule,
   addPlugin,
-  addAutoImport
+  addAutoImport,
+  installModule
 } from '@nuxt/kit'
 import { withTrailingSlash } from 'ufo'
 import type { ViteDevServer } from 'vite'
@@ -23,6 +24,8 @@ export default defineNuxtModule<ModuleOptions>({
   },
   defaults: MODULE_DEFAULTS,
   async setup (moduleOptions, nuxt) {
+    await installModule('@nuxtjs/design-tokens/module')
+
     // Private runtime config
     nuxt.options.runtimeConfig.theme = {
       optionsFilePaths: []

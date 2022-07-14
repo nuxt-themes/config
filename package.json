@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "@nuxt/kit": "^3.0.0-rc.5",
+    "@nuxtjs/design-tokens": "npm:@nuxtjs/design-tokens-edge@latest",
     "@types/lodash.get": "^4.4.7",
     "lodash.get": "^4.4.2",
     "untyped": "^0.4.4"
