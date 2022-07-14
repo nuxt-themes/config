@@ -12,5 +12,5 @@ Toolkit for authoring Nuxt Themes.
 ## Development
 
 - Clone repository
-- Install dependencies using `yarn install``
+- Install dependencies using `yarn install`
 - Try playground using `yarn dev`
