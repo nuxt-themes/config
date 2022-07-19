@@ -33,6 +33,7 @@ export default defineNuxtModule<ModuleOptions>({
     nuxt.options.runtimeConfig.theme = {
       optionsFilePaths: [],
       metas: [],
+      schema: undefined,
       themeDir
     }
 
@@ -43,11 +44,13 @@ export default defineNuxtModule<ModuleOptions>({
       await createThemeDir(themeDir)
 
       // Resolve theme configuration from every layer
-      const { optionsFilePaths, options, metas } = resolveTheme(layers as NuxtLayer[])
+      const { optionsFilePaths, options, schema, metas } = resolveTheme(layers as NuxtLayer[])
 
-      if (moduleOptions.options) { privateConfig.optionsFilePaths = optionsFilePaths }
-
-      if (moduleOptions.options) { await generateOptionsTyping(themeDir, options) }
+      if (moduleOptions.options) {
+        privateConfig.optionsFilePaths = optionsFilePaths
+        privateConfig.schema = schema
+        await generateOptionsTyping(themeDir, schema, options)
+      }
 
       if (nitro) {
         await nitro.storage.setItem('cache:theme:options.json', options)

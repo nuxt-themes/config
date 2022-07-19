@@ -43,7 +43,7 @@
     "prepare": "yarn dev:prepare"
   },
   "dependencies": {
-    "@nuxt/kit": "^3.0.0-rc.5",
+    "@nuxt/kit": "^3.0.0-rc.6",
     "@types/lodash.get": "^4.4.7",
     "lodash.get": "^4.4.2",
     "untyped": "^0.4.4"
@@ -52,12 +52,12 @@
     "@nuxt-themes/docus": "npm:@nuxt-themes/docus-edge@latest",
     "@nuxtjs/design-tokens": "npm:@nuxtjs/design-tokens-edge@latest",
     "@nuxt/module-builder": "^0.1.7",
-    "@nuxt/schema": "^3.0.0-rc.5",
+    "@nuxt/schema": "^3.0.0-rc.6",
     "@nuxt/test-utils": "npm:@nuxt/test-utils-edge@latest",
     "@nuxtjs/eslint-config-typescript": "latest",
     "@nuxtjs/tailwindcss": "npm:@nuxtjs/tailwindcss-edge@latest",
     "c8": "^7.11.3",
-    "eslint": "^8.19.0",
+    "eslint": "^8.20.0",
     "globby": "^13.1.2",
     "husky": "^8.0.1",
     "jiti": "^1.14.0",
@@ -65,6 +65,6 @@
     "lodash": "^4.17.21",
     "nuxt": "npm:nuxt3@latest",
     "pathe": "^0.3.2",
-    "vitest": "^0.18.0"
+    "vitest": "^0.18.1"
   }
 }

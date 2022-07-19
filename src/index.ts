@@ -1,5 +1,7 @@
+import type { Schema } from 'untyped'
 // @ts-ignore
 import type { ThemeOptions } from '#theme/types'
+import '@nuxt/schema'
 
 type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]>; } : T;
 
@@ -37,9 +39,12 @@ export interface ModulePrivateRuntimeConfig {
   themeDir?: string
   metas?: NuxtThemeMeta[]
   optionsFilePaths?: Array<string>
+  schema?: Schema
 }
 
 export const defineTheme = (options: DeepPartial<NuxtThemeOptions>): DeepPartial<NuxtThemeOptions> => options
+
+export const defineSchema = (schema: Schema) => schema
 
 declare module '@nuxt/schema' {
   interface PublicRuntimeConfig {

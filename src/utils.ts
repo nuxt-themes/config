@@ -1,8 +1,9 @@
 import { mkdir, writeFile } from 'fs/promises'
 import { existsSync } from 'fs'
-import { createDefu } from 'defu'
+import defu, { createDefu } from 'defu'
 import { resolve } from 'pathe'
 import { generateTypes, resolveSchema } from 'untyped'
+import type { Schema } from 'untyped'
 import chalk from 'chalk'
 import { requireModule, useLogger } from '@nuxt/kit'
 import { name, version } from '../package.json'
@@ -43,7 +44,7 @@ export { name, version }
 /**
  * Options merging function built with defu.
  */
-export const optionsMerger = createDefu((obj, key, value) => {
+export const defuMerger = createDefu((obj, key, value) => {
   // Arrays should overwrite and not be merged.
   if (obj[key] && Array.isArray(obj[key])) {
     obj[key] = value
@@ -54,6 +55,7 @@ export const optionsMerger = createDefu((obj, key, value) => {
 export const resolveConfig = (layer: NuxtLayer, key: string, configFile = `${key}.config`) => {
   const value = layer.config?.theme?.[key] || MODULE_DEFAULTS[key]
   let config = {}
+  let schema = {}
 
   let filePath: string
 
@@ -67,12 +69,14 @@ export const resolveConfig = (layer: NuxtLayer, key: string, configFile = `${key
 
   if (filePath) {
     try {
-      const _file = requireModule(filePath, { clearCache: true })
+      const _file = requireModule(filePath, { clearCache: true, interopDefault: false })
+      if (_file.schema) { schema = _file.schema }
+      delete _file.schema
       if (_file) { config = _file }
     } catch (_) {}
   }
 
-  return { filePath, config }
+  return { filePath, config, schema }
 }
 
 /**
@@ -82,6 +86,7 @@ export const resolveTheme = (layers: NuxtLayer[]) => {
   const optionsFilePaths: string[] = []
   const metas: NuxtThemeMeta[] = []
   let options = {} as NuxtThemeOptions
+  let schema = {} as NuxtThemeOptions
 
   const splitLayer = (layer: NuxtLayer) => {
     // Add metas to list
@@ -94,17 +99,19 @@ export const resolveTheme = (layers: NuxtLayer[]) => {
     // Deeply merge layer options
     // Results in default options typings.
     if (layer.config?.theme?.options || MODULE_DEFAULTS.options) {
-      const { config: layerOptions, filePath: _layerOptionsFilePath } = resolveConfig(layer, 'options', 'theme.config')
+      const { config: layerOptions, schema: layerSchema, filePath: _layerOptionsFilePath } = resolveConfig(layer, 'options', 'theme.config')
 
       if (_layerOptionsFilePath) { optionsFilePaths.push(_layerOptionsFilePath) }
 
-      options = optionsMerger(options, layerOptions)
+      options = defuMerger(options, layerOptions)
+
+      schema = defuMerger(schema, layerSchema)
     }
   }
 
   for (const layer of layers) { splitLayer(layer) }
 
-  return { optionsFilePaths, metas, options }
+  return { optionsFilePaths, metas, options, schema }
 }
 
 export const createThemeDir = async (path: string) => {
@@ -141,14 +148,19 @@ export const objectPaths = (data: any) => {
 /**
  * Generate a typing declaration from the theme configuration.
  */
-export const generateOptionsTyping = async (path: string, options: Partial<NuxtThemeOptions> = {}) => {
+export const generateOptionsTyping = async (path: string, schema: Schema, options: Partial<NuxtThemeOptions> = {}) => {
   /**
    * types.d.ts
    */
 
   let typesTs = 'import type { Ref } from \'vue\'\n\n'
 
-  typesTs = typesTs + generateTypes(resolveSchema(options), { addDefaults: true, allowExtraKeys: true, interfaceName: 'ThemeOptions' }) + '\n\n'
+  // Resolve options schema from object declaration and `schema` export if it exists
+  const optionsSchema = defu(schema, resolveSchema(options))
+
+  const typing = generateTypes(optionsSchema, { addDefaults: true, allowExtraKeys: true, interfaceName: 'ThemeOptions' })
+
+  typesTs = typesTs + typing + '\n\n'
 
   typesTs = typesTs + `export type OptionsPaths = ${objectPaths(options).map(path => (`'${path}'`)).join(' | \n')}\n\n`
 
