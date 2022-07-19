@@ -11,7 +11,7 @@
     <div
       class="flex-1 rounded-lg relative z-0 p-8 overflow-y-auto"
     >
-      <p class="flex items-center justify-center w-64 h-64 bg-primary-500 rounded-xl rounded-lg ring-4 ring-black">
+      <p class="flex items-center justify-center w-64 h-64 bg-gradient-to-r from-primary-50 to-primary-900 rounded-xl rounded-lg ring-4 ring-black">
         Primary
       </p>
       <p class="flex items-center justify-center w-64 h-64 bg-black rounded-xl mt-8 rounded-lg ring-4 ring-black">
@@ -39,9 +39,9 @@
 </template>
 
 <script setup lang="ts">
-const theme = useTheme()
+// const theme = useTheme()
 // eslint-disable-next-line no-console
-console.log(theme.value)
+// console.log(theme.value)
 </script>
 
 <style scoped lang="postcss">

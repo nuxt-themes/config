@@ -44,8 +44,6 @@
   },
   "dependencies": {
     "@nuxt/kit": "^3.0.0-rc.6",
-    "@types/lodash.get": "^4.4.7",
-    "lodash.get": "^4.4.2",
     "untyped": "^0.4.4"
   },
   "devDependencies": {

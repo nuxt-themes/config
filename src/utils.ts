@@ -145,6 +145,17 @@ export const objectPaths = (data: any) => {
   return output
 }
 
+const getFunction =
+`const get = (obj, path, defValue = undefined) => {
+  if (!path) return undefined
+  const pathArray = Array.isArray(path) ? path : path.match(/([^[.\\]])+/g)
+  const result = pathArray.reduce(
+    (prevObj, key) => prevObj && prevObj[key],
+    obj
+  )
+  return result === undefined ? defValue : result
+}`
+
 /**
  * Generate a typing declaration from the theme configuration.
  */
@@ -193,13 +204,15 @@ declare module '@nuxt/schema' {
 
   let indexTs = 'import { OptionsPaths, ThemeOptions } from \'./types\'\n\n'
 
-  indexTs = indexTs + 'import get from \'lodash.get\'\n\n'
+  indexTs = indexTs + `${getFunction}\n\n`
 
   indexTs = indexTs + `export const options: ThemeOptions = ${JSON.stringify(options, null, 2)}\n\n`
 
   indexTs = indexTs + 'export const $theme = (path: OptionsPaths) => get(options, path)\n\n'
 
-  indexTs = indexTs + 'export * from \'./options-types.d\'\n'
+  indexTs = indexTs + 'export const $t = $theme\n\n'
+
+  indexTs = indexTs + 'export * from \'./types.d\'\n'
 
   await writeFile(path + 'index.ts', indexTs)
 
@@ -207,18 +220,20 @@ declare module '@nuxt/schema' {
    * index.js
    */
 
-  let indexJs = 'import get from \'lodash.get\'\n\n'
+  let indexJs = `${getFunction}\n\n`
 
   indexJs = indexJs + `export const options = ${JSON.stringify(options, null, 2)}\n\n`
 
   indexJs = indexJs +
 `/**
- * @typedef {import('options-types').OptionsPaths} OptionsPaths
+ * @typedef {import('types').OptionsPaths} OptionsPaths
  * @param {OptionsPaths} path
  */
 export const $theme = (path) => get(options, path)\n\n`
 
-  indexJs = indexJs + 'export default { options, $theme }\n'
+  indexJs = indexJs + 'export const $t = $theme\n\n'
+
+  indexJs = indexJs + 'export default { options, $theme, $t }\n'
 
   await writeFile(path + 'index.js', indexJs)
 }

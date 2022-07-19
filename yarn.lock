@@ -432,19 +432,19 @@
     fastq "^1.6.0"
 
 "@nuxt-themes/config@npm:@nuxt-themes/config-edge@latest":
-  version "0.0.1-27630309.7d5539b"
-  resolved "https://registry.yarnpkg.com/@nuxt-themes/config-edge/-/config-edge-0.0.1-27630309.7d5539b.tgz#4d266123de4737d3b124074e609e949ed916f83b"
-  integrity sha512-RL55SS8n0iMaYIFkHxpzK4Z0GM5ml58qOPFepspxXkoGe8Bx7R5o6XY48JfUAG5KnGlOnWFwl6zy/0LRdQGCjA==
+  version "0.0.1-27636489.e304dd2"
+  resolved "https://registry.yarnpkg.com/@nuxt-themes/config-edge/-/config-edge-0.0.1-27636489.e304dd2.tgz#fa45a267b071d6a591774e331d691a51ec1b9fd1"
+  integrity sha512-jKPPmsLG9+nciLHRhJMvac0x0MItyGydI80w2txnD4kGo3sq7fi6l0Iv4rT2siFXGquypxynkamyUWsKc0R5Gg==
   dependencies:
-    "@nuxt/kit" "^3.0.0-rc.5"
+    "@nuxt/kit" "^3.0.0-rc.6"
     "@types/lodash.get" "^4.4.7"
     lodash.get "^4.4.2"
     untyped "^0.4.4"
 
 "@nuxt-themes/docus@npm:@nuxt-themes/docus-edge@latest":
-  version "3.0.0-8057363"
-  resolved "https://registry.yarnpkg.com/@nuxt-themes/docus-edge/-/docus-edge-3.0.0-8057363.tgz#971bc96904491e49f17578e69d5169bfc39f5d69"
-  integrity sha512-MJfDszy31C/i9TbpVlp90an3sfmeQGhBtc8q6Uc/N/XsexURYcialP+D4Tk0GaWbw5fJNmNVIoTGiSA2o0zoBw==
+  version "3.0.0-79d58da"
+  resolved "https://registry.yarnpkg.com/@nuxt-themes/docus-edge/-/docus-edge-3.0.0-79d58da.tgz#2523ddce63ca1641449503f20d01329b564d9fee"
+  integrity sha512-750liRrFclXSE8rSLtmKTq5aOJ+taOQPTrepSxyjdXNCH6Yx2Joy5/vcMHrFHXdWbRC+lPxoW1neo04MJ6hUbQ==
   dependencies:
     "@iconify/vue" "^3.2.1"
     "@nuxt-themes/config" "npm:@nuxt-themes/config-edge@latest"
@@ -452,6 +452,7 @@
     "@nuxt/kit" "^3.0.0-rc.5"
     "@nuxthq/studio" "npm:@nuxthq/studio-edge@latest"
     "@nuxtjs/color-mode" "^3.1.4"
+    "@nuxtjs/design-tokens" "npm:@nuxtjs/design-tokens-edge@latest"
     "@nuxtjs/tailwindcss" "npm:@nuxtjs/tailwindcss-edge@latest"
     "@tailwindcss/aspect-ratio" "^0.4.0"
     "@tailwindcss/forms" "^0.5.2"
@@ -743,15 +744,13 @@
     pathe "^0.3.0"
 
 "@nuxtjs/design-tokens@npm:@nuxtjs/design-tokens-edge@latest":
-  version "0.0.1-27636462.86547f9"
-  resolved "https://registry.yarnpkg.com/@nuxtjs/design-tokens-edge/-/design-tokens-edge-0.0.1-27636462.86547f9.tgz#2250946f6834bcb33f1702b5de3583918d0c17aa"
-  integrity sha512-XLvj6H7+mwPj842+c8pfvanABVqdtNUguTyCjRpwpeeddvZFSOeTh/aW7uMsnjHNQQ8p8jFhkknrH/mNnVNlJQ==
+  version "0.0.1-27636649.805494"
+  resolved "https://registry.yarnpkg.com/@nuxtjs/design-tokens-edge/-/design-tokens-edge-0.0.1-27636649.805494.tgz#48dcfe7b2ba80c2cad6e2bb87fcae244f16781f4"
+  integrity sha512-9NQVlyJFQVVAv+x60El8qZvErUp2TA4m280JFwFoAMztwK96aUToXByls8I+WwfhNabHi8h/OaI2HaITKuCyBA==
   dependencies:
     "@nuxt/kit" "^3.0.0-rc.6"
-    "@types/lodash.get" "^4.4.7"
     browser-style-dictionary "^3.1.1-browser.1"
     chroma-js "^2.4.2"
-    lodash.get "^4.4.2"
     untyped "^0.4.4"
 
 "@nuxtjs/eslint-config-typescript@latest":
@@ -2599,9 +2598,9 @@ ee-first@1.1.1:
   integrity sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==
 
 electron-to-chromium@^1.4.188:
-  version "1.4.193"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.193.tgz#8e760b9d9a7b92fe472664fd61811b307f3de39b"
-  integrity sha512-tBqbgRv0yFIYBLBQKW6kHzI81rjvO1CRy+K8+XHTZtkVPkAZayI/CxTqBiy6Q1+tYAxby8bq/6yOiuNkTvfxmw==
+  version "1.4.194"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.194.tgz#2f83fcec5067907044a3d502ac7c3efb1fe6430b"
+  integrity sha512-ola5UH0xAP1oYY0FFUsPvwtucEzCQHucXnT7PQ1zjHJMccZhCDktEugI++JUR3YuIs7Ff7afz+OVEhVAIMhLAQ==
 
 emoji-regex@^8.0.0:
   version "8.0.0"
