@@ -171,5 +171,12 @@ export default defineNuxtModule<ModuleOptions>({
         })
       })
     }
+
+    // @nuxtjs/tailwindcss support
+    // @ts-ignore - Module might not exist
+    nuxt.hook('tailwindcss:config', (tailwindConfig) => {
+      tailwindConfig.content = tailwindConfig.content ?? []
+      tailwindConfig.content.push(`${themeDir}/**/*`)
+    })
   }
 })
