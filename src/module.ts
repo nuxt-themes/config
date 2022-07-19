@@ -154,7 +154,7 @@ export default defineNuxtModule<ModuleOptions>({
       nuxt.hook('nitro:init', (nitro) => {
         nuxt.hook('vite:serverCreated', (viteServer: ViteDevServer) => {
           nuxt.hook('builder:watch', async (_, path) => {
-            const isOptionsFile = moduleOptions.meta ? privateConfig.optionsFilePaths.some(optionsFilePath => optionsFilePath.includes(path.replace('.js', '')) || optionsFilePath.includes(path.replace('.ts', ''))) : false
+            const isOptionsFile = path.includes('theme.config.ts') || path.includes('theme.config.js')
 
             if (isOptionsFile) {
               const { options } = await refreshTheme(nitro)
