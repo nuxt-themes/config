@@ -176,7 +176,7 @@ export default defineNuxtModule<ModuleOptions>({
     // @ts-ignore - Module might not exist
     nuxt.hook('tailwindcss:config', (tailwindConfig) => {
       tailwindConfig.content = tailwindConfig.content ?? []
-      tailwindConfig.content.push(`${themeDir}/**/*`)
+      tailwindConfig.content.push(join(themeDir, 'index.ts'))
     })
   }
 })
