@@ -6,6 +6,7 @@ import {
   addAutoImport
 } from '@nuxt/kit'
 import { withTrailingSlash } from 'ufo'
+import { join } from 'pathe'
 import type { ViteDevServer } from 'vite'
 import { defu } from 'defu'
 import type { Nitro } from 'nitropack'
