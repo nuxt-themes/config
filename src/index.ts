@@ -1,9 +1,7 @@
 import type { Schema } from 'untyped'
 import jiti from 'jiti'
-// @ts-ignore
 import { resolveModule } from '@nuxt/kit'
-// @ts-ignore
-import type { ThemeOptions, OptionsPaths } from '#theme/types'
+import type { ThemeOptions, OptionsPaths } from '#theme'
 
 type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]>; } : T;
 

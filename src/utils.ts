@@ -86,7 +86,7 @@ export const resolveTheme = (layers: NuxtLayer[]) => {
   const optionsFilePaths: string[] = []
   const metas: NuxtThemeMeta[] = []
   let options = {} as NuxtThemeOptions
-  let schema = {} as NuxtThemeOptions
+  let schema = {} as Schema
 
   const splitLayer = (layer: NuxtLayer) => {
     // Add metas to list
@@ -199,22 +199,20 @@ declare module '@nuxt/schema' {
   await writeFile(path + 'types.d.ts', typesTs)
 
   /**
-   * index.ts
+   * index.d.ts
    */
 
-  let indexTs = 'import { OptionsPaths, ThemeOptions } from \'./types\'\n\n'
+  let indexTs = 'import type { OptionsPaths, ThemeOptions } from \'./types\'\n\n'
 
-  indexTs = indexTs + `${getFunction}\n\n`
+  indexTs = indexTs + 'export declare const options: ThemeOptions\n\n'
 
-  indexTs = indexTs + `export const options: ThemeOptions = ${JSON.stringify(options, null, 2)}\n\n`
+  indexTs = indexTs + 'export declare const $theme: (path: OptionsPaths) => string\n\n'
 
-  indexTs = indexTs + 'export const $theme = (path: OptionsPaths) => get(options, path)\n\n'
+  indexTs = indexTs + 'export declare const $t: (path: OptionsPaths) => string\n\n'
 
-  indexTs = indexTs + 'export const $t = $theme\n\n'
+  indexTs = indexTs + 'export * from \'./types\'\n'
 
-  indexTs = indexTs + 'export * from \'./types.d\'\n'
-
-  await writeFile(path + 'index.ts', indexTs)
+  await writeFile(path + 'index.d.ts', indexTs)
 
   /**
    * index.js
