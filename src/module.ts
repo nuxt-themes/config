@@ -173,6 +173,10 @@ export default defineNuxtModule<ModuleOptions>({
       })
     }
 
+    nuxt.hook('build:before', async () => {
+      await refreshTheme()
+    })
+
     // @nuxtjs/tailwindcss support
     // @ts-ignore - Module might not exist
     nuxt.hook('tailwindcss:config', (tailwindConfig) => {
