@@ -1,5 +1,5 @@
 import { defineNuxtPlugin, useState, addRouteMiddleware } from '#imports'
-import type { ThemeOptions } from '#theme/types'
+import type { ThemeOptions } from '#theme'
 
 export default defineNuxtPlugin(() => {
   const theme = useState<ThemeOptions>('nuxt-theme-config-theme-options', () => undefined)

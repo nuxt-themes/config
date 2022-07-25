@@ -112,7 +112,6 @@ export default defineNuxtModule<ModuleOptions>({
     // Apply aliases
     nuxt.options.alias = nuxt.options.alias || {}
     nuxt.options.alias['#theme'] = resolveThemeDir('./index')
-    nuxt.options.alias['#theme/types'] = resolveThemeDir('./index.d')
 
     // Inject typings
     nuxt.hook('prepare:types', (opts) => {
@@ -181,7 +180,7 @@ export default defineNuxtModule<ModuleOptions>({
     // @ts-ignore - Module might not exist
     nuxt.hook('tailwindcss:config', (tailwindConfig) => {
       tailwindConfig.content = tailwindConfig.content ?? []
-      tailwindConfig.content.push(join(themeDir, 'index.ts'))
+      tailwindConfig.content.push(join(themeDir, 'index.js'))
     })
   }
 })
