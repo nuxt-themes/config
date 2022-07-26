@@ -17,13 +17,14 @@ export default defineNuxtModule<ModuleOptions>({
   meta: {
     name,
     version,
-    configKey: 'theme',
     compatibility: {
-      nuxt: '^3.0.0-rc.4'
+      nuxt: '^3.0.0-rc.6'
     }
   },
-  defaults: MODULE_DEFAULTS,
-  async setup (moduleOptions, nuxt) {
+  async setup (_, nuxt) {
+    // Use `app.theme` key
+    const moduleOptions = defu((nuxt.options.app as any)?.theme || {}, MODULE_DEFAULTS)
+
     // Nuxt `extends` key layers
     const layers = nuxt.options._layers
 

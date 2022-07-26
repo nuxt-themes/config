@@ -8,13 +8,15 @@ import localModule from '../../src/module'
 
 export default defineNuxtConfig({
   modules: [localModule, '@nuxtjs/design-tokens/module', '@nuxtjs/tailwindcss'],
-  theme: {
-    meta: {
-      name: 'Playground Theme',
-      description: 'Just a basic Playground Theme',
-      url: 'https://nuxt-themes.netlify.app',
-      author: 'NuxtLabs',
-      motd: true
+  app: {
+    theme: {
+      meta: {
+        name: 'Playground Theme',
+        description: 'Just a basic Playground Theme',
+        url: 'https://nuxt-themes.netlify.app',
+        author: 'NuxtLabs',
+        motd: true
+      }
     }
   },
   tailwindcss: {

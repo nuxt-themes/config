@@ -74,7 +74,9 @@ declare module '@nuxt/schema' {
 
   interface NuxtConfig {
     // @ts-ignore
-    theme?: Partial<ModuleOptions>
+    app: {
+      theme?: Partial<ModuleOptions>
+    }
   }
 
   interface NuxtOptions {

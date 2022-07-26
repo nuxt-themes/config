@@ -54,7 +54,7 @@
     "@nuxt/test-utils": "npm:@nuxt/test-utils-edge@latest",
     "@nuxtjs/eslint-config-typescript": "latest",
     "@nuxtjs/tailwindcss": "npm:@nuxtjs/tailwindcss-edge@latest",
-    "c8": "^7.11.3",
+    "c8": "^7.12.0",
     "eslint": "^8.20.0",
     "globby": "^13.1.2",
     "husky": "^8.0.1",
@@ -63,6 +63,6 @@
     "lodash": "^4.17.21",
     "nuxt": "npm:nuxt3@latest",
     "pathe": "^0.3.2",
-    "vitest": "^0.18.1"
+    "vitest": "^0.19.1"
   }
 }
