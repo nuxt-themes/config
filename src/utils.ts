@@ -53,7 +53,7 @@ export const defuMerger = createDefu((obj, key, value) => {
 })
 
 export const resolveConfig = (layer: NuxtLayer, key: string, configFile = `${key}.config`) => {
-  const value = layer.config?.theme?.[key] || MODULE_DEFAULTS[key]
+  const value = layer.config?.app?.theme?.[key] || MODULE_DEFAULTS[key]
   let config = {}
   let schema = {}
 
@@ -91,14 +91,14 @@ export const resolveTheme = (layers: NuxtLayer[]) => {
   const splitLayer = (layer: NuxtLayer) => {
     // Add metas to list
     // Leep trace of every theme used.
-    if (layer.config?.theme?.meta) {
-      metas.push(layer.config.theme.meta)
-      delete layer.config.theme.meta
+    if (layer.config?.app?.theme?.meta) {
+      metas.push(layer.config.app.theme.meta)
+      delete layer.config.app.theme.meta
     }
 
     // Deeply merge layer options
     // Results in default options typings.
-    if (layer.config?.theme?.options || MODULE_DEFAULTS.options) {
+    if (layer.config?.app?.theme?.options || MODULE_DEFAULTS.options) {
       const { config: layerOptions, schema: layerSchema, filePath: _layerOptionsFilePath } = resolveConfig(layer, 'options', 'theme.config')
 
       if (_layerOptionsFilePath) { optionsFilePaths.push(_layerOptionsFilePath) }
