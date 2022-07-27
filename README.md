@@ -1,5 +1,7 @@
 # @nuxt-themes/config
 
+[📜 Documentation](https://nuxt-themes.netlify.app)
+
 Toolkit for authoring Nuxt Themes.
 
 ## Features
