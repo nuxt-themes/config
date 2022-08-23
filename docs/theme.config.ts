@@ -7,7 +7,7 @@ export default defineTheme({
   debug: false,
   socials: {
     twitter: '@yaeeelglx',
-    github: '@nuxt-themes/config'
+    github: 'nuxt-themes/config'
   },
   github: {
     root: 'docs/content',
