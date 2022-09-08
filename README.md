@@ -1,3 +1,5 @@
+> :warning: This project has been archived in order to leverage the native [app.config](https://v3.nuxtjs.org/guide/features/app-config) feature of Nuxt 3 (see [example](https://github.com/nuxt-themes/starter/blob/main/theme/app.config.ts))
+
 # @nuxt-themes/config
 
 [📜 Documentation](https://nuxt-themes.netlify.app)
